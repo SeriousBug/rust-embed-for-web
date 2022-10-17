@@ -19,7 +19,7 @@ fn embedded(
     prefix: Option<&str>,
     includes: &[String],
     excludes: &[String],
-    gzip: bool
+    gzip: bool,
 ) -> TokenStream2 {
     extern crate rust_embed_for_web_utils;
 
@@ -118,7 +118,8 @@ fn embed_file(rel_path: &str, full_canonical_path: &str, gzip: bool) -> TokenStr
     // Sometimes, the gzipped data is barely any smaller than the original data
     // or it may even be larger. This especially happens in files that are way
     // too small, or files in already compressed formats like images and videos.
-    let include_data_gzip = data_gzip_len < (data_len as f64 * GZIP_INCLUDE_THRESHOLD) as usize && gzip;
+    let include_data_gzip =
+        data_gzip_len < (data_len as f64 * GZIP_INCLUDE_THRESHOLD) as usize && gzip;
     let data_gzip_data_embed = if include_data_gzip {
         quote! {
             static data_gzip: [u8; #data_gzip_len] = [#(#data_gzip),*];
@@ -187,7 +188,13 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
     let prefix = find_attribute_values(ast, "prefix").into_iter().next();
     let includes = find_attribute_values(ast, "include");
     let excludes = find_attribute_values(ast, "exclude");
-    let gzip: Option<bool> = find_attribute_values(ast, "gzip").into_iter().next().map(|v| v.parse().expect("Value for the gzip attribute must be true or false"));
+    let gzip: Option<bool> = find_attribute_values(ast, "gzip")
+        .into_iter()
+        .next()
+        .map(|v| {
+            v.parse()
+                .expect("Value for the gzip attribute must be true or false")
+        });
 
     #[cfg(feature = "interpolate-folder-path")]
     let folder_path = shellexpand::full(&folder_path).unwrap().to_string();
@@ -203,7 +210,14 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
         folder_path
     };
 
-    generate_assets(&ast.ident, folder_path, prefix, includes, excludes, gzip.unwrap_or(true))
+    generate_assets(
+        &ast.ident,
+        folder_path,
+        prefix,
+        includes,
+        excludes,
+        gzip.unwrap_or(true),
+    )
 }
 
 #[proc_macro_derive(RustEmbed, attributes(folder, prefix, include, exclude))]
