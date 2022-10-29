@@ -1,14 +1,25 @@
+p, h1 {
+  max-width: 64rem;
+  margin: 0 auto 2rem auto;
+
+}
+
+h1 {
+  text-align: center;
+}
+
+.image-container {
+  margin: 2rem 48rem 2rem 2rem;
+  float: right;
+}
+
+img {
+  display: inline;
+  width: 100%;
+  max-height: 16rem;
+  object-fit: cover;
+}
+
 body {
-color:#000000;
-font-family:sans-serif;
-font-size: small;
-font-style: italic;
-font-weight: bold;
+  background-color: #fff0e4;
 }
-
-table.hh {
-border:1px solid gray;
-}
-
-
-bor { border: 1px;}

@@ -5,27 +5,26 @@
 extern crate rust_embed_for_web_impl;
 pub use rust_embed_for_web_impl::*;
 
-pub use rust_embed_for_web_utils::{EmbeddedFile, Metadata};
+pub use rust_embed_for_web_utils::{DynamicFile, EmbedableFile, EmbeddedFile};
 
 #[doc(hidden)]
 pub extern crate rust_embed_for_web_utils as utils;
 
-/// A directory of binary assets.
+/// A folder of embedded files.
 ///
-/// The files in the specified folder will be embedded into the executable in
-/// release builds.
+/// The type of the file `RustEmbed::File` depends on whether we're in debug
+/// mode or release mode:
 ///
-/// This trait is meant to be derived like so:
-/// ```
-/// use rust_embed_for_web::RustEmbed;
+/// - In debug mode it will be a `DynamicFile`
+/// - In release mode it will be a `EmbeddedFile`
 ///
-/// #[derive(RustEmbed)]
-/// #[folder = "examples/public/"]
-/// struct Asset;
-///
-/// fn main() {}
-/// ```
+/// The derivation will automatically generate the correct file type. You don't
+/// need to directly interface with the different file types that might get
+/// returned: you should instead use the `EmbedableFile`  trait which is
+/// implemented for both.
 pub trait RustEmbed {
-    /// Get an embedded file and its metadata.
-    fn get(file_path: &str) -> Option<EmbeddedFile>;
+    type File: EmbedableFile;
+
+    /// Get a file out of the folder.
+    fn get(file_path: &str) -> Option<Self::File>;
 }

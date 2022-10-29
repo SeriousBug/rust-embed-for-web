@@ -10,29 +10,28 @@ keywords = ["http", "embed", "static", "web", "server"]
 categories = ["web-programming", "filesystem"]
 edition = "2018"
 
-[[test]]
-name = "interpolated_path"
-path = "tests/interpolated_path.rs"
-required-features = ["interpolate-folder-path"]
-
-[[test]]
-name = "include_exclude"
-path = "tests/include_exclude.rs"
-required-features = ["include-exclude"]
-
 [dependencies]
 walkdir = "2.3.1"
-rust-embed-for-web-impl = { version = "9.0.1", path = "impl"}
-rust-embed-for-web-utils = { version = "10.0.0", path = "utils"}
+rust-embed-for-web-impl = { version = "9.0.1", path = "impl" }
+rust-embed-for-web-utils = { version = "10.0.0", path = "utils" }
 
 [dev-dependencies]
 chrono = "0.4"
 flate2 = "1.0"
+brotli = "3.3"
+actix-web = "4.2"
 
 [features]
 default = []
-interpolate-folder-path = ["rust-embed-for-web-impl/interpolate-folder-path"]
-include-exclude = ["rust-embed-for-web-impl/include-exclude", "rust-embed-for-web-utils/include-exclude"]
+# Even in debug mode use a release embed.
+# We use this to test embed code in our tests.
+always-embed = ["rust-embed-for-web-impl/always-embed"]
+
 
 [workspace]
 members = ["impl", "utils"]
+
+[[test]]
+name = "compression"
+path = "tests/compression.rs"
+required-features = ["always-embed"]

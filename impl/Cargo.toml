@@ -13,12 +13,20 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-rust-embed-for-web-utils = { version = "10.0.0", path = "../utils"}
+rust-embed-for-web-utils = { version = "10.0.0", path = "../utils" }
 
-syn = { version = "1", default-features = false, features = ["derive", "parsing", "proc-macro"] }
+syn = { version = "1", default-features = false, features = [
+  "derive",
+  "parsing",
+  "proc-macro",
+] }
 quote = "1"
 proc-macro2 = "1"
 walkdir = "2.3.1"
+
+# Compression
+flate2 = "1.0"
+brotli = "3.3"
 
 [dependencies.shellexpand]
 version = "2"
@@ -27,3 +35,4 @@ optional = true
 [features]
 interpolate-folder-path = ["shellexpand"]
 include-exclude = ["rust-embed-for-web-utils/include-exclude"]
+always-embed = []
