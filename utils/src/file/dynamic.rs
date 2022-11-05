@@ -83,7 +83,7 @@ impl DynamicFile {
         let mut hasher = Sha256::new();
         hasher.update(&data);
         let hash = hasher.finalize();
-        let hash = base85::encode(&hash[..]);
+        let hash = base85rs::encode(&hash[..]);
 
         let mime_type = MimeGuess::from_path(&path).first().map(|v| v.to_string());
 

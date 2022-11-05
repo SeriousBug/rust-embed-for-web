@@ -1,6 +1,6 @@
 [package]
 name = "rust-embed-for-web-utils"
-version = "10.0.0"
+version = "11.0.0"
 description = "Utilities for rust-embed-for-web"
 readme = "readme.md"
 repository = "https://github.com/SeriousBug/rust-embed-for-web"
@@ -15,7 +15,7 @@ walkdir = "2.3.1"
 # Compute hash
 sha2 = "0.10.5"
 # Encode hash & etag
-base85 = "1.1"
+base85rs = "0.1"
 # Compute last-modified timestamps
 chrono = "0.4"
 # Compute the mime types
