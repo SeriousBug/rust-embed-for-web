@@ -2,27 +2,23 @@ use rust_embed_for_web_utils::Config;
 use syn::{Attribute, Lit, Meta, MetaNameValue};
 
 fn parse_str(attribute: &Attribute) -> Option<String> {
-    if let Some(meta) = attribute.parse_meta().ok() {
-        if let Meta::NameValue(MetaNameValue {
-            lit: Lit::Str(value),
-            ..
-        }) = meta
-        {
-            return Some(value.value());
-        }
+    if let Ok(Meta::NameValue(MetaNameValue {
+        lit: Lit::Str(value),
+        ..
+    })) = attribute.parse_meta()
+    {
+        return Some(value.value());
     }
     None
 }
 
 fn parse_bool(attribute: &Attribute) -> Option<bool> {
-    if let Some(meta) = attribute.parse_meta().ok() {
-        if let Meta::NameValue(MetaNameValue {
-            lit: Lit::Bool(value),
-            ..
-        }) = meta
-        {
-            return Some(value.value());
-        }
+    if let Ok(Meta::NameValue(MetaNameValue {
+        lit: Lit::Bool(value),
+        ..
+    })) = attribute.parse_meta()
+    {
+        return Some(value.value());
     }
     None
 }

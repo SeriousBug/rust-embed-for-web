@@ -62,6 +62,7 @@ impl EmbedableFile for EmbeddedFile {
 
 impl EmbeddedFile {
     #[doc(hidden)]
+    #[allow(clippy::too_many_arguments)]
     /// This is used internally in derived code to create embedded file objects.
     /// You don't want to manually use this function!
     pub fn __internal_make(

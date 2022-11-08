@@ -3,31 +3,31 @@ use globset::GlobMatcher;
 use proc_macro2::TokenStream as TokenStream2;
 use rust_embed_for_web_utils::Config;
 
-use crate::embed::IntoEmbed;
+use crate::embed::MakeEmbed;
 
-impl IntoEmbed for Vec<String> {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for Vec<String> {
+    fn make_embed(&self) -> TokenStream2 {
         let v = self;
         quote! { &[#(#v),*] }
     }
 }
 
 #[cfg(feature = "include-exclude")]
-impl IntoEmbed for Vec<GlobMatcher> {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for Vec<GlobMatcher> {
+    fn make_embed(&self) -> TokenStream2 {
         let patterns: Vec<String> = self.iter().map(|v| v.glob().to_string()).collect();
-        patterns.into_embed()
+        patterns.make_embed()
     }
 }
 
-impl IntoEmbed for Config {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for Config {
+    fn make_embed(&self) -> TokenStream2 {
         let includes_embed = {
             let includes = self.get_includes();
-            if includes.len() == 0 {
+            if includes.is_empty() {
                 quote! {}
             } else {
-                let includes = includes.into_embed();
+                let includes = includes.make_embed();
                 quote! {
                     for ele in #includes {
                         config.add_include(ele.to_string());
@@ -37,10 +37,10 @@ impl IntoEmbed for Config {
         };
         let excludes_embed = {
             let excludes = self.get_excludes();
-            if excludes.len() == 0 {
+            if excludes.is_empty() {
                 quote! {}
             } else {
-                let excludes = excludes.into_embed();
+                let excludes = excludes.make_embed();
                 quote! {
                     for ele in #excludes {
                         config.add_exclude(ele.to_string());
@@ -63,7 +63,7 @@ pub(crate) fn generate_dynamic_impl(
     config: &Config,
     folder_path: &str,
 ) -> TokenStream2 {
-    let config = config.into_embed();
+    let config = config.make_embed();
 
     quote! {
       impl #ident {

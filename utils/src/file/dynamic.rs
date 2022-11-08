@@ -72,7 +72,7 @@ fn modified_unix_timestamp(metadata: &std::fs::Metadata) -> Option<i64> {
                 SystemTime::UNIX_EPOCH
                     .duration_since(modified)
                     .ok()
-                    .and_then(|v| v.as_secs().try_into().ok().map(|v: i64| v * -1))
+                    .and_then(|v| v.as_secs().try_into().ok().map(|v: i64| -v))
             })
     })
 }

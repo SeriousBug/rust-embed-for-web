@@ -66,15 +66,13 @@ impl Config {
         // Includes have priority.
         self.include
             .iter()
-            .find(|include| include.is_match(path))
-            .is_some()
+            .any(|include| include.is_match(path))
             // If not, then we check if the file has been excluded. Any file
             // that is not explicitly excluded will be 
-            || self
+            || !self
                 .exclude
                 .iter()
-                .find(|exclude| exclude.is_match(path))
-                .is_none()
+                .any(|exclude| exclude.is_match(path))
     }
 
     pub fn should_gzip(&self) -> bool {

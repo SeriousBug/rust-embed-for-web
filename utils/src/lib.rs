@@ -21,7 +21,7 @@ pub fn get_files<'t>(
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
         .filter_map(move |e| {
-            let rel_path = path_to_str(e.path().strip_prefix(&folder_path).unwrap());
+            let rel_path = path_to_str(e.path().strip_prefix(folder_path).unwrap());
             let full_canonical_path =
                 path_to_str(std::fs::canonicalize(e.path()).expect("Could not get canonical path"));
 

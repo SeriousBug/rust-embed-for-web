@@ -8,35 +8,35 @@ use crate::compress::{compress_br, compress_gzip};
 /// We're using our own trait instead of the actual `ToTokens` trait because the
 /// types we implement it for are not defined in this crate, so we'd have to
 /// wrap all of them.
-pub(crate) trait IntoEmbed {
-    fn into_embed(&self) -> TokenStream2;
+pub(crate) trait MakeEmbed {
+    fn make_embed(&self) -> TokenStream2;
 }
 
-impl IntoEmbed for Vec<u8> {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for Vec<u8> {
+    fn make_embed(&self) -> TokenStream2 {
         // Not sure why quote doesn't like it if I use #self here
         let v = self;
         quote! { &[#(#v),*] }
     }
 }
 
-impl IntoEmbed for String {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for String {
+    fn make_embed(&self) -> TokenStream2 {
         quote! { #self }
     }
 }
 
-impl IntoEmbed for i64 {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for i64 {
+    fn make_embed(&self) -> TokenStream2 {
         quote! { #self }
     }
 }
 
-impl<T: IntoEmbed> IntoEmbed for Option<T> {
-    fn into_embed(&self) -> TokenStream2 {
+impl<T: MakeEmbed> MakeEmbed for Option<T> {
+    fn make_embed(&self) -> TokenStream2 {
         match self {
             Some(v) => {
-                let embed = v.into_embed();
+                let embed = v.make_embed();
                 quote! { Some(#embed) }
             }
             None => quote! { None },
@@ -44,19 +44,19 @@ impl<T: IntoEmbed> IntoEmbed for Option<T> {
     }
 }
 
-impl IntoEmbed for DynamicFile {
-    fn into_embed(&self) -> TokenStream2 {
+impl MakeEmbed for DynamicFile {
+    fn make_embed(&self) -> TokenStream2 {
         let file = self;
-        let name = file.name().into_embed();
+        let name = file.name().make_embed();
         let data = file.data();
-        let data_gzip = compress_gzip(&data).into_embed();
-        let data_br = compress_br(&data).into_embed();
-        let data = data.into_embed();
-        let hash = file.hash().into_embed();
-        let etag = file.etag().into_embed();
-        let last_modified = file.last_modified().into_embed();
-        let last_modified_timestamp = file.last_modified_timestamp().into_embed();
-        let mime_type = file.mime_type().into_embed();
+        let data_gzip = compress_gzip(&data).make_embed();
+        let data_br = compress_br(&data).make_embed();
+        let data = data.make_embed();
+        let hash = file.hash().make_embed();
+        let etag = file.etag().make_embed();
+        let last_modified = file.last_modified().make_embed();
+        let last_modified_timestamp = file.last_modified_timestamp().make_embed();
+        let mime_type = file.mime_type().make_embed();
         // Make sure that the order of these parameters is correct!
         quote! {
             rust_embed_for_web::EmbeddedFile::__internal_make(
@@ -86,7 +86,7 @@ pub(crate) fn generate_embed_impl(
                  full_canonical_path,
              }| {
                 let Some(file) = DynamicFile::read_from_fs(&full_canonical_path).ok() else{ return None };
-                let file_embed = file.into_embed();
+                let file_embed = file.make_embed();
                 Some(quote! {
                     #rel_path => Some(#file_embed),
                 })

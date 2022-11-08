@@ -60,7 +60,7 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
         folder_path
     };
 
-    let config = read_attribute_config(&ast);
+    let config = read_attribute_config(ast);
 
     if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
         generate_dynamic_impl(&ast.ident, &config, &folder_path)
