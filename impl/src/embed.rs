@@ -44,13 +44,32 @@ impl<T: MakeEmbed> MakeEmbed for Option<T> {
     }
 }
 
-impl MakeEmbed for DynamicFile {
+struct EmbedDynamicFile<'t> {
+    file: &'t DynamicFile,
+    config: &'t Config,
+}
+
+impl<'t> EmbedDynamicFile<'t> {
+    fn new(file: &'t DynamicFile, config: &'t Config) -> EmbedDynamicFile<'t> {
+        EmbedDynamicFile { file, config }
+    }
+}
+
+impl<'t> MakeEmbed for EmbedDynamicFile<'t> {
     fn make_embed(&self) -> TokenStream2 {
-        let file = self;
+        let file = self.file;
         let name = file.name().make_embed();
         let data = file.data();
-        let data_gzip = compress_gzip(&data).make_embed();
-        let data_br = compress_br(&data).make_embed();
+        let data_gzip = if self.config.should_gzip() {
+            compress_gzip(&data).make_embed()
+        } else {
+            None::<Vec<u8>>.make_embed()
+        };
+        let data_br = if self.config.should_br() {
+            compress_br(&data).make_embed()
+        } else {
+            None::<Vec<u8>>.make_embed()
+        };
         let data = data.make_embed();
         let hash = file.hash().make_embed();
         let etag = file.etag().make_embed();
@@ -85,8 +104,8 @@ pub(crate) fn generate_embed_impl(
                  rel_path,
                  full_canonical_path,
              }| {
-                let Some(file) = DynamicFile::read_from_fs(&full_canonical_path).ok() else{ return None };
-                let file_embed = file.make_embed();
+                let Ok(file) = DynamicFile::read_from_fs(&full_canonical_path) else { return None };
+                let file_embed = EmbedDynamicFile::new(&file, config).make_embed();
                 Some(quote! {
                     #rel_path => Some(#file_embed),
                 })
