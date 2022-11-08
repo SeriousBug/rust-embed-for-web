@@ -1,4 +1,4 @@
-use rust_embed_for_web::RustEmbed;
+use rust_embed_for_web::{EmbedableFile, RustEmbed};
 
 #[derive(RustEmbed)]
 #[folder = "examples/public"]
@@ -27,4 +27,13 @@ fn get_file_with_trait<T: RustEmbed>(path: &str) -> Option<T::File> {
 fn using_trait_also_works() {
     assert!(get_file_with_trait::<Embed>("index.html").is_some());
     assert!(get_file_with_trait::<Embed>("does-not-exist").is_none());
+}
+
+#[test]
+fn file_name_exists() {
+    assert_eq!(Embed::get("index.html").unwrap().name(), "index.html");
+    assert_eq!(
+        Embed::get("images/flower.jpg").unwrap().name(),
+        "flower.jpg"
+    );
 }
