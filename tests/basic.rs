@@ -37,3 +37,10 @@ fn file_name_exists() {
         "flower.jpg"
     );
 }
+
+#[test]
+fn readme_example() {
+    let index = Embed::get("index.html").unwrap().data();
+    let contents = std::str::from_utf8(index.as_ref()).unwrap();
+    assert!(contents.len() > 0);
+}
