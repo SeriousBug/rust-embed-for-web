@@ -42,6 +42,11 @@ path = "tests/compression.rs"
 required-features = ["always-embed"]
 
 [[test]]
+name = "gzip"
+path = "tests/gzip.rs"
+required-features = ["always-embed"]
+
+[[test]]
 name = "include-exclude"
 path = "tests/include-exclude.rs"
 required-features = ["include-exclude"]
