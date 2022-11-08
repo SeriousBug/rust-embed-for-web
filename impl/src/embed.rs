@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream as TokenStream2;
-use rust_embed_for_web_utils::{get_files, DynamicFile, EmbedableFile, FileEntry};
+use rust_embed_for_web_utils::{get_files, Config, DynamicFile, EmbedableFile, FileEntry};
 
 use crate::compress::{compress_br, compress_gzip};
 
@@ -8,7 +8,7 @@ use crate::compress::{compress_br, compress_gzip};
 /// We're using our own trait instead of the actual `ToTokens` trait because the
 /// types we implement it for are not defined in this crate, so we'd have to
 /// wrap all of them.
-trait IntoEmbed {
+pub(crate) trait IntoEmbed {
     fn into_embed(&self) -> TokenStream2;
 }
 
@@ -47,6 +47,7 @@ impl<T: IntoEmbed> IntoEmbed for Option<T> {
 impl IntoEmbed for DynamicFile {
     fn into_embed(&self) -> TokenStream2 {
         let file = self;
+        let name = file.name().into_embed();
         let data = file.data();
         let data_gzip = compress_gzip(&data).into_embed();
         let data_br = compress_br(&data).into_embed();
@@ -59,6 +60,7 @@ impl IntoEmbed for DynamicFile {
         // Make sure that the order of these parameters is correct!
         quote! {
             rust_embed_for_web::EmbeddedFile::__internal_make(
+                #name,
                 #data,
                 #data_gzip,
                 #data_br,
@@ -72,8 +74,12 @@ impl IntoEmbed for DynamicFile {
     }
 }
 
-pub(crate) fn generate_embed_impl(ident: &syn::Ident, folder_path: &str) -> TokenStream2 {
-    let embeds: Vec<TokenStream2> = get_files(folder_path)
+pub(crate) fn generate_embed_impl(
+    ident: &syn::Ident,
+    config: &Config,
+    folder_path: &str,
+) -> TokenStream2 {
+    let embeds: Vec<TokenStream2> = get_files(folder_path, config)
         .filter_map(
             |FileEntry {
                  rel_path,

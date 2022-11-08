@@ -22,11 +22,16 @@ brotli = "3.3"
 actix-web = "4.2"
 
 [features]
-default = []
+default = ["interpolate-folder-path", "include-exclude"]
 # Even in debug mode use a release embed.
 # We use this to test embed code in our tests.
 always-embed = ["rust-embed-for-web-impl/always-embed"]
-
+# Allow environment variables and ~'s to be expanded
+interpolate-folder-path = ["rust-embed-for-web-impl/interpolate-folder-path"]
+include-exclude = [
+  "rust-embed-for-web-impl/include-exclude",
+  "rust-embed-for-web-utils/include-exclude",
+]
 
 [workspace]
 members = ["impl", "utils"]
@@ -35,3 +40,8 @@ members = ["impl", "utils"]
 name = "compression"
 path = "tests/compression.rs"
 required-features = ["always-embed"]
+
+[[test]]
+name = "include-exclude"
+path = "tests/include-exclude.rs"
+required-features = ["include-exclude"]

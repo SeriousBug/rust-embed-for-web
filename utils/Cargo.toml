@@ -20,10 +20,9 @@ base85rs = "0.1"
 chrono = "0.4"
 # Compute the mime types
 new_mime_guess = "4.0.1"
-
-[dependencies.globset]
-version = "0.4.8"
-optional = true
+# Filter by glob include/exclude
+globset = { version = "0.4", optional = true }
 
 [features]
+default = []
 include-exclude = ["globset"]

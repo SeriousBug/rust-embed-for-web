@@ -3,6 +3,7 @@
 #[allow(unused_imports)]
 #[macro_use]
 extern crate rust_embed_for_web_impl;
+
 pub use rust_embed_for_web_impl::*;
 
 pub use rust_embed_for_web_utils::{DynamicFile, EmbedableFile, EmbeddedFile};

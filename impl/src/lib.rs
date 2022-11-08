@@ -4,10 +4,12 @@
 extern crate quote;
 extern crate proc_macro;
 
+mod attributes;
 mod compress;
 mod dynamic;
 mod embed;
 
+use attributes::read_attribute_config;
 use dynamic::generate_dynamic_impl;
 use embed::generate_embed_impl;
 use proc_macro::TokenStream;
@@ -44,7 +46,6 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
         panic!("#[derive(RustEmbed)] must contain one and only one folder attribute");
     }
     let folder_path = folder_paths.remove(0);
-
     #[cfg(feature = "interpolate-folder-path")]
     let folder_path = shellexpand::full(&folder_path).unwrap().to_string();
 
@@ -59,10 +60,12 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
         folder_path
     };
 
+    let config = read_attribute_config(&ast);
+
     if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
-        generate_dynamic_impl(&ast.ident, &folder_path)
+        generate_dynamic_impl(&ast.ident, &config, &folder_path)
     } else {
-        generate_embed_impl(&ast.ident, &folder_path)
+        generate_embed_impl(&ast.ident, &config, &folder_path)
     }
 }
 

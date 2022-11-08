@@ -28,11 +28,14 @@ walkdir = "2.3.1"
 flate2 = "1.0"
 brotli = "3.3"
 
+globset = { version = "0.4", optional = true }
+
 [dependencies.shellexpand]
-version = "2"
+version = "2.1"
 optional = true
 
 [features]
+default = []
 interpolate-folder-path = ["shellexpand"]
-include-exclude = ["rust-embed-for-web-utils/include-exclude"]
+include-exclude = ["rust-embed-for-web-utils/include-exclude", "globset"]
 always-embed = []

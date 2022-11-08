@@ -1,5 +1,6 @@
 use std::{
     convert::TryInto,
+    fmt::Debug,
     io::{BufReader, Read},
     path::Path,
     time::SystemTime,
@@ -12,6 +13,7 @@ use sha2::{Digest, Sha256};
 use super::common::EmbedableFile;
 
 pub struct DynamicFile {
+    name: String,
     data: Vec<u8>,
     hash: String,
     last_modified_timestamp: Option<i64>,
@@ -21,6 +23,10 @@ pub struct DynamicFile {
 impl EmbedableFile for DynamicFile {
     type Data = Vec<u8>;
     type Meta = String;
+
+    fn name(&self) -> Self::Meta {
+        self.name.clone()
+    }
 
     fn data(&self) -> Self::Data {
         self.data.clone()
@@ -86,12 +92,28 @@ impl DynamicFile {
         let hash = base85rs::encode(&hash[..]);
 
         let mime_type = MimeGuess::from_path(&path).first().map(|v| v.to_string());
+        let name = Path::file_name(path.as_ref())
+            .expect("Unable to parse the file name")
+            .to_string_lossy()
+            .to_string();
 
         Ok(DynamicFile {
+            name,
             data,
             hash,
             last_modified_timestamp,
             mime_type,
         })
+    }
+}
+
+impl Debug for DynamicFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DynamicFile")
+            .field("name", &self.name)
+            .field("hash", &self.hash)
+            .field("last_modified", &self.last_modified())
+            .field("mime_type", &self.mime_type)
+            .finish()
     }
 }

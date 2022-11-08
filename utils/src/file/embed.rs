@@ -1,4 +1,5 @@
 use super::common::EmbedableFile;
+use std::fmt::Debug;
 
 /// A file embedded into the binary.
 ///
@@ -7,6 +8,7 @@ use super::common::EmbedableFile;
 /// it's a debug or release build. You should likely not try to interface
 /// directly with this type, and instead use the `EmbedableFile` trait.
 pub struct EmbeddedFile {
+    name: &'static str,
     data: &'static [u8],
     data_gzip: Option<&'static [u8]>,
     data_br: Option<&'static [u8]>,
@@ -20,6 +22,10 @@ pub struct EmbeddedFile {
 impl EmbedableFile for EmbeddedFile {
     type Data = &'static [u8];
     type Meta = &'static str;
+
+    fn name(&self) -> Self::Meta {
+        self.name
+    }
 
     fn data(&self) -> Self::Data {
         self.data
@@ -62,6 +68,7 @@ impl EmbeddedFile {
         // Make sure that the order of these parameters is correct in respect to
         // the file contents! And if you are changing or reordering any of
         // these, make sure to update the corresponding call in `impl`
+        name: &'static str,
         data: &'static [u8],
         data_gzip: Option<&'static [u8]>,
         data_br: Option<&'static [u8]>,
@@ -72,6 +79,7 @@ impl EmbeddedFile {
         mime_type: Option<&'static str>,
     ) -> EmbeddedFile {
         EmbeddedFile {
+            name,
             data,
             data_gzip,
             data_br,
@@ -81,5 +89,16 @@ impl EmbeddedFile {
             last_modified_timestamp,
             mime_type,
         }
+    }
+}
+
+impl Debug for EmbeddedFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EmbeddedFile")
+            .field("name", &self.name)
+            .field("hash", &self.hash)
+            .field("last_modified", &self.last_modified())
+            .field("mime_type", &self.mime_type)
+            .finish()
     }
 }

@@ -6,6 +6,8 @@ pub trait EmbedableFile {
     type Data: 'static + AsRef<[u8]>;
     type Meta: 'static + AsRef<str>;
 
+    /// The name of the embedded file.
+    fn name(&self) -> Self::Meta;
     /// The contents of the embedded file.
     fn data(&self) -> Self::Data;
     /// The contents of the file, compressed with gzip.
