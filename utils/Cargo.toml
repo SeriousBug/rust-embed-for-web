@@ -17,7 +17,7 @@ sha2 = "0.10.5"
 # Encode hash & etag
 base85rs = "0.1"
 # Compute last-modified timestamps
-chrono = "0.4"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
 # Compute the mime types
 new_mime_guess = "4.0.1"
 # Filter by glob include/exclude
