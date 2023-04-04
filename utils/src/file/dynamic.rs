@@ -50,7 +50,7 @@ impl EmbedableFile for DynamicFile {
 
     fn last_modified(&self) -> Option<Self::Meta> {
         self.last_modified_timestamp()
-            .map(|v| chrono::Utc.timestamp(v, 0).to_rfc2822())
+            .map(|v| chrono::Utc.timestamp_opt(v, 0).unwrap().to_rfc2822())
     }
 
     fn last_modified_timestamp(&self) -> Option<i64> {

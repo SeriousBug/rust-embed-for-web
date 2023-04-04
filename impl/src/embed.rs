@@ -104,7 +104,7 @@ pub(crate) fn generate_embed_impl(
                  rel_path,
                  full_canonical_path,
              }| {
-                if let Ok(file) = DynamicFile::read_from_fs(&full_canonical_path) {
+                if let Ok(file) = DynamicFile::read_from_fs(full_canonical_path) {
                     let file_embed = EmbedDynamicFile::new(&file, config).make_embed();
                     Some(quote! {
                         #rel_path => Some(#file_embed),
