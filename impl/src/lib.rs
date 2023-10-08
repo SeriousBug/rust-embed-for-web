@@ -20,17 +20,21 @@ use embed::generate_embed_impl;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use std::{env, path::Path};
-use syn::{Data, DeriveInput, Fields, Lit, Meta, MetaNameValue};
+use syn::{Data, DeriveInput, Expr, ExprLit, Fields, Lit, Meta, MetaNameValue};
 
 /// Find all pairs of the `name = "value"` attribute from the derive input
 fn find_attribute_values(ast: &syn::DeriveInput, attr_name: &str) -> Vec<String> {
     ast.attrs
         .iter()
-        .filter(|value| value.path.is_ident(attr_name))
-        .filter_map(|attr| attr.parse_meta().ok())
+        .filter(|value| value.path().is_ident(attr_name))
+        .map(|attr| &attr.meta)
         .filter_map(|meta| match meta {
             Meta::NameValue(MetaNameValue {
-                lit: Lit::Str(val), ..
+                value:
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Str(val), ..
+                    }),
+                ..
             }) => Some(val.value()),
             _ => None,
         })
