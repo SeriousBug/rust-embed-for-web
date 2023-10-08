@@ -20,9 +20,9 @@ jobs:
       - name: Check doc tests
         # These don't run as part of llvm-cov yet. We mostly just care that
         # these compile, none of them actually test much.
-        run: cargo test --doc --all --all-features
+        run: cargo test --doc --workspace --all-features
       - name: Generate code coverage
-        run: cargo llvm-cov --all --all-features --workspace --lcov --output-path lcov.info
+        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
