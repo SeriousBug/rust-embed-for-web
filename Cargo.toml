@@ -12,8 +12,8 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2.4.0"
-rust-embed-for-web-impl = { version = "11.1.3", path = "impl" }
-rust-embed-for-web-utils = { version = "11.1.3", path = "utils" }
+rust-embed-for-web-impl = { version = "11.1.4", path = "impl" }
+rust-embed-for-web-utils = { version = "11.1.4", path = "utils" }
 
 [dev-dependencies]
 chrono = { version = "0.4", default-features = false }
