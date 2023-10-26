@@ -8,6 +8,7 @@ struct Asset;
 fn handle_embedded_file(path: &str) -> HttpResponse {
     match Asset::get(path) {
         Some(content) => {
+            print_sizes(&content);
             let mut resp = HttpResponse::Ok();
             resp.append_header(("ETag", content.etag()));
             if let Some(last_modified) = content.last_modified() {
@@ -45,8 +46,23 @@ async fn dist(path: web::Path<String>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("Launching server at http://127.0.0.1:8000");
     HttpServer::new(|| App::new().service(index).service(dist))
         .bind("127.0.0.1:8000")?
         .run()
         .await
+}
+
+fn print_sizes<F: EmbedableFile>(file: &F) {
+    println!(
+        "{}: {} bytes, {} compressed with BR, {} compressed with GZIP",
+        file.name().as_ref(),
+        file.data().as_ref().len(),
+        file.data_br()
+            .map(|v| format!("{} bytes", v.as_ref().len()))
+            .unwrap_or("not".to_string()),
+        file.data_gzip()
+            .map(|v| format!("{} bytes", v.as_ref().len()))
+            .unwrap_or("not".to_string()),
+    );
 }

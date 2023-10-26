@@ -78,7 +78,7 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
     }
 }
 
-#[proc_macro_derive(RustEmbed, attributes(folder, prefix, include, exclude, gzip))]
+#[proc_macro_derive(RustEmbed, attributes(folder, prefix, include, exclude, gzip, br))]
 /// A folder that is embedded into your program.
 ///
 /// For example:
