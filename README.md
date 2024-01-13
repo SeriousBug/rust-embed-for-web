@@ -1,6 +1,6 @@
 # Rust Embed for Web <!-- omit in toc -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ![Crates.io](https://img.shields.io/crates/v/rust-embed-for-web)
 [![Test coverage report](https://img.shields.io/codecov/c/github/SeriousBug/rust-embed-for-web)](https://codecov.io/gh/SeriousBug/rust-embed-for-web)
@@ -116,6 +116,7 @@ struct Assets;
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hengfeiyang"><img src="https://avatars.githubusercontent.com/u/1628250?v=4?s=100" width="100px;" alt="Hengfei Yang"/><br /><sub><b>Hengfei Yang</b></sub></a><br /><a href="https://github.com/SeriousBug/rust-embed-for-web/commits?author=hengfeiyang" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/peroxid"><img src="https://avatars.githubusercontent.com/u/4387517?v=4?s=100" width="100px;" alt="peroxid"/><br /><sub><b>peroxid</b></sub></a><br /><a href="https://github.com/SeriousBug/rust-embed-for-web/issues?q=author%3Aperoxid" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nguiard"><img src="https://avatars.githubusercontent.com/u/8525852?v=4?s=100" width="100px;" alt="Nicolas Guiard"/><br /><sub><b>Nicolas Guiard</b></sub></a><br /><a href="https://github.com/SeriousBug/rust-embed-for-web/commits?author=nguiard" title="Code">💻</a> <a href="https://github.com/SeriousBug/rust-embed-for-web/issues?q=author%3Anguiard" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
