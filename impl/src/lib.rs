@@ -71,10 +71,19 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
 
     let config = read_attribute_config(ast);
 
-    if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
-        generate_dynamic_impl(&ast.ident, &config, &folder_path)
+    let prefixes = find_attribute_values(ast, "prefix");
+    let prefix = if prefixes.len() == 0 {
+        "".to_string()
+    } else if prefixes.len() == 1 {
+        prefixes[0].clone()
     } else {
-        generate_embed_impl(&ast.ident, &config, &folder_path)
+        panic!("#[derive(RustEmbed)] must have at most one prefix, you supplied several");
+    };
+
+    if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
+        generate_dynamic_impl(&ast.ident, &config, &folder_path, &prefix)
+    } else {
+        generate_embed_impl(&ast.ident, &config, &folder_path, &prefix)
     }
 }
 

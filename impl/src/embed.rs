@@ -97,8 +97,9 @@ pub(crate) fn generate_embed_impl(
     ident: &syn::Ident,
     config: &Config,
     folder_path: &str,
+    prefix: &str,
 ) -> TokenStream2 {
-    let embeds: Vec<TokenStream2> = get_files(folder_path, config)
+    let embeds: Vec<TokenStream2> = get_files(folder_path, config, prefix)
         .filter_map(
             |FileEntry {
                  rel_path,
