@@ -7,7 +7,7 @@ use flate2::{write::GzEncoder, Compression};
 /// the uncompressed version.
 const COMPRESSION_INCLUDE_THRESHOLD: f64 = 0.95;
 
-pub(crate) fn compress_gzip(data: &Vec<u8>) -> Option<Vec<u8>> {
+pub(crate) fn compress_gzip(data: &[u8]) -> Option<Vec<u8>> {
     let mut data_gzip: Vec<u8> = Vec::new();
     let mut encoder = GzEncoder::new(&mut data_gzip, Compression::default());
     encoder
@@ -24,8 +24,8 @@ pub(crate) fn compress_gzip(data: &Vec<u8>) -> Option<Vec<u8>> {
     }
 }
 
-pub(crate) fn compress_br(data: &Vec<u8>) -> Option<Vec<u8>> {
-    let mut data_read = BufReader::new(&data[..]);
+pub(crate) fn compress_br(data: &[u8]) -> Option<Vec<u8>> {
+    let mut data_read = BufReader::new(data);
     let mut data_br: Vec<u8> = Vec::new();
     brotli::BrotliCompress(
         &mut data_read,

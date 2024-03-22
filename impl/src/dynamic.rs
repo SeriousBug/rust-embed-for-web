@@ -80,9 +80,7 @@ pub(crate) fn generate_dynamic_impl(
       impl #ident {
         fn get(path: &str) -> Option<rust_embed_for_web::DynamicFile> {
           let config = { #config };
-          let Some(path) = path.strip_prefix(#prefix) else {
-            return None;
-          };
+          let path = path.strip_prefix(#prefix)?;
           if config.should_include(path) {
             let folder_path: std::path::PathBuf = std::convert::From::from(#folder_path);
             let combined_path = folder_path.join(path);
