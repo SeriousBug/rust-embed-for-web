@@ -19,6 +19,7 @@ rust-embed-for-web-utils = { version = "11.2.1", path = "utils" }
 chrono = { version = "0.4", default-features = false }
 flate2 = "1.0"
 brotli = "6.0"
+zstd = "0.13"
 actix-web = "4.4"
 
 [features]
@@ -44,6 +45,11 @@ required-features = ["always-embed"]
 [[test]]
 name = "gzip"
 path = "tests/gzip.rs"
+required-features = ["always-embed"]
+
+[[test]]
+name = "zstd"
+path = "tests/zstd.rs"
 required-features = ["always-embed"]
 
 [[test]]

@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream as TokenStream2;
 use rust_embed_for_web_utils::{get_files, Config, DynamicFile, EmbedableFile, FileEntry};
 
-use crate::compress::{compress_br, compress_gzip};
+use crate::compress::{compress_br, compress_gzip, compress_zstd};
 
 /// Anything that can be embedded into the program.
 ///
@@ -70,6 +70,11 @@ impl<'t> MakeEmbed for EmbedDynamicFile<'t> {
         } else {
             None::<Vec<u8>>.make_embed()
         };
+        let data_zstd = if self.config.should_zstd() {
+            compress_zstd(&data).make_embed()
+        } else {
+            None::<Vec<u8>>.make_embed()
+        };
         let data = data.make_embed();
         let hash = file.hash().make_embed();
         let etag = file.etag().make_embed();
@@ -83,6 +88,7 @@ impl<'t> MakeEmbed for EmbedDynamicFile<'t> {
                 #data,
                 #data_gzip,
                 #data_br,
+                #data_zstd,
                 #hash,
                 #etag,
                 #last_modified,

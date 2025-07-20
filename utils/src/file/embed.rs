@@ -15,6 +15,7 @@ pub struct EmbeddedFile {
     data: &'static [u8],
     data_gzip: Option<&'static [u8]>,
     data_br: Option<&'static [u8]>,
+    data_zstd: Option<&'static [u8]>,
     hash: &'static str,
     etag: &'static str,
     last_modified: Option<&'static str>,
@@ -40,6 +41,10 @@ impl EmbedableFile for EmbeddedFile {
 
     fn data_br(&self) -> Option<Self::Data> {
         self.data_br
+    }
+
+    fn data_zstd(&self) -> Option<Self::Data> {
+        self.data_zstd
     }
 
     fn last_modified(&self) -> Option<Self::Meta> {
@@ -76,6 +81,7 @@ impl EmbeddedFile {
         data: &'static [u8],
         data_gzip: Option<&'static [u8]>,
         data_br: Option<&'static [u8]>,
+        data_zstd: Option<&'static [u8]>,
         hash: &'static str,
         etag: &'static str,
         last_modified: Option<&'static str>,
@@ -87,6 +93,7 @@ impl EmbeddedFile {
             data,
             data_gzip,
             data_br,
+            data_zstd,
             hash,
             etag,
             last_modified,

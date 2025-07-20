@@ -9,6 +9,7 @@ pub struct Config {
     exclude: Vec<GlobMatcher>,
     gzip: bool,
     br: bool,
+    zstd: bool,
 }
 
 impl Default for Config {
@@ -20,6 +21,7 @@ impl Default for Config {
             exclude: vec![],
             gzip: true,
             br: true,
+            zstd: true,
         }
     }
 }
@@ -54,6 +56,10 @@ impl Config {
 
     pub fn set_br(&mut self, status: bool) {
         self.br = status;
+    }
+
+    pub fn set_zstd(&mut self, status: bool) {
+        self.zstd = status;
     }
 
     #[cfg(feature = "include-exclude")]
@@ -98,5 +104,9 @@ impl Config {
 
     pub fn should_br(&self) -> bool {
         self.br
+    }
+
+    pub fn should_zstd(&self) -> bool {
+        self.zstd
     }
 }

@@ -48,6 +48,10 @@ impl EmbedableFile for DynamicFile {
         None
     }
 
+    fn data_zstd(&self) -> Option<Self::Data> {
+        None
+    }
+
     fn last_modified(&self) -> Option<Self::Meta> {
         self.last_modified_timestamp()
             .map(|v| chrono::Utc.timestamp_opt(v, 0).unwrap().to_rfc2822())

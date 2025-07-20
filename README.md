@@ -24,7 +24,7 @@ executable in exchange for better performance at runtime. In particular:
   or decompress anything at runtime.
   - If the compression makes little difference, for example a jpeg file won't
     compress much further if at all, then the compressed version is not included.
-  - You can also disable this behavior by adding an attribute `#[gzip = false]` and `#[br = false]`
+  - You can also disable this behavior by adding an attribute `#[gzip = false]`, `#[br = false]`, or `#[zstd = false]`
     When disabled, the compressed files won't be included for that embed.
 - Some metadata that is useful for web headers like `ETag` and `Last-Modified`
   are computed ahead of time and embedded into the executable. This makes it
@@ -68,8 +68,8 @@ The path for the `folder` is resolved relative to where `Cargo.toml` is.
 
 ### Disabling compression
 
-You can add `#[gzip = false]` and/or `#[br = false]` attributes to your embed to
-disable gzip and brotli compression for the files in that embed.
+You can add `#[gzip = false]`, `#[br = false]`, and/or `#[zstd = false]` attributes to your embed to
+disable gzip, brotli, and/or zstd compression for the files in that embed.
 `rust-embed-for-web` will only include compressed files where the compression
 actually makes files smaller so files that won't compress well like images or
 archives already don't include their compressed versions. However you can
