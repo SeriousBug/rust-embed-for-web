@@ -33,3 +33,23 @@ fn dynamic_file_image_compressed_data_is_none() {
     // But it should still have the original data
     assert!(!file.data().is_empty());
 }
+
+#[test]
+fn explicit_dynamic_compression_coverage() {
+    // Explicitly test to ensure coverage of DynamicFile compression methods
+    let file = DynamicAssets::get("index.html").unwrap();
+    
+    // Test each compression method explicitly to ensure coverage
+    let gzip_result = file.data_gzip();
+    assert_eq!(gzip_result, None);
+    
+    let br_result = file.data_br(); 
+    assert_eq!(br_result, None);
+    
+    let zstd_result = file.data_zstd();
+    assert_eq!(zstd_result, None);
+    
+    // Ensure we have actual data though
+    let actual_data = file.data();
+    assert!(!actual_data.is_empty());
+}

@@ -29,7 +29,7 @@ fn compression_gzip_roundtrip() {
     let compressed = Embed::get("index.html").unwrap().data_gzip().unwrap();
     let mut decompressed: Vec<u8> = Vec::new();
     let mut decoder = GzDecoder::new(&mut decompressed);
-    decoder.write_all(&compressed[..]).unwrap();
+    decoder.write_all(compressed).unwrap();
     decoder.finish().unwrap();
     let decompressed_body = String::from_utf8_lossy(&decompressed[..]);
     assert!(decompressed_body.starts_with("<!DOCTYPE html>"));
@@ -39,7 +39,7 @@ fn compression_gzip_roundtrip() {
 fn compression_br_roundtrip() {
     let compressed = Embed::get("index.html").unwrap().data_br().unwrap();
     let mut decompressed: Vec<u8> = Vec::new();
-    let mut data_read = BufReader::new(&compressed[..]);
+    let mut data_read = BufReader::new(compressed);
     brotli::BrotliDecompress(&mut data_read, &mut decompressed).unwrap();
     let decompressed_body = String::from_utf8_lossy(&decompressed[..]);
     assert!(decompressed_body.starts_with("<!DOCTYPE html>"));
@@ -48,7 +48,7 @@ fn compression_br_roundtrip() {
 #[test]
 fn compression_zstd_roundtrip() {
     let compressed = Embed::get("index.html").unwrap().data_zstd().unwrap();
-    let decompressed = zstd::bulk::decompress(&compressed, 1024 * 1024).unwrap();
+    let decompressed = zstd::bulk::decompress(compressed, 1024 * 1024).unwrap();
     let decompressed_body = String::from_utf8_lossy(&decompressed[..]);
     assert!(decompressed_body.starts_with("<!DOCTYPE html>"));
 }
