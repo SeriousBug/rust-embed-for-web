@@ -21,7 +21,10 @@ fn image_files_are_not_compressed() {
         .data_gzip()
         .is_none());
     assert!(Embed::get("images/flower.jpg").unwrap().data_br().is_none());
-    assert!(Embed::get("images/flower.jpg").unwrap().data_zstd().is_none());
+    assert!(Embed::get("images/flower.jpg")
+        .unwrap()
+        .data_zstd()
+        .is_none());
 }
 
 #[test]

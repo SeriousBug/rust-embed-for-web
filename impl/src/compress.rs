@@ -43,8 +43,7 @@ pub(crate) fn compress_br(data: &[u8]) -> Option<Vec<u8>> {
 
 pub(crate) fn compress_zstd(data: &[u8]) -> Option<Vec<u8>> {
     let mut data_zstd: Vec<u8> = Vec::new();
-    let mut encoder = ZstdEncoder::new(&mut data_zstd, 3)
-        .expect("Failed to create zstd encoder");
+    let mut encoder = ZstdEncoder::new(&mut data_zstd, 3).expect("Failed to create zstd encoder");
     encoder
         .write_all(data)
         .expect("Failed to compress zstd data");
