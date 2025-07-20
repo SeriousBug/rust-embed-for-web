@@ -2,6 +2,7 @@ use std::io::{BufReader, Write};
 
 use brotli::enc::BrotliEncoderParams;
 use flate2::{write::GzEncoder, Compression};
+#[cfg(feature = "compression-zstd")]
 use zstd::stream::write::Encoder as ZstdEncoder;
 
 /// Only include the compressed version if it is at least this much smaller than
@@ -41,6 +42,7 @@ pub(crate) fn compress_br(data: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
+#[cfg(feature = "compression-zstd")]
 pub(crate) fn compress_zstd(data: &[u8]) -> Option<Vec<u8>> {
     let mut data_zstd: Vec<u8> = Vec::new();
     let mut encoder = ZstdEncoder::new(&mut data_zstd, 3).expect("Failed to create zstd encoder");
@@ -56,4 +58,9 @@ pub(crate) fn compress_zstd(data: &[u8]) -> Option<Vec<u8>> {
     } else {
         None
     }
+}
+
+#[cfg(not(feature = "compression-zstd"))]
+pub(crate) fn compress_zstd(_data: &[u8]) -> Option<Vec<u8>> {
+    None
 }

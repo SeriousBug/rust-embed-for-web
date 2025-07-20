@@ -27,7 +27,7 @@ walkdir = "2.4.0"
 # Compression
 flate2 = "1.0"
 brotli = "6.0"
-zstd = "0.13"
+zstd = { version = "0.13", optional = true }
 
 globset = { version = "0.4", optional = true }
 
@@ -40,3 +40,4 @@ default = []
 interpolate-folder-path = ["shellexpand"]
 include-exclude = ["rust-embed-for-web-utils/include-exclude", "globset"]
 always-embed = []
+compression-zstd = ["zstd", "rust-embed-for-web-utils/compression-zstd"]

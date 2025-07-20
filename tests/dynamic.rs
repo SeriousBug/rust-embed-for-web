@@ -86,3 +86,19 @@ fn explicit_dynamic_compression_coverage() {
     let actual_data = file.data();
     assert!(!actual_data.is_empty());
 }
+
+#[test]
+fn specific_dynamic_none_coverage() {
+    // Create a DynamicFile directly to ensure we test the None paths
+    use rust_embed_for_web::{DynamicFile, EmbedableFile};
+
+    let file = DynamicFile::read_from_fs("examples/public/index.html").unwrap();
+
+    // These should all return None for DynamicFile, ensuring coverage of those lines
+    assert!(file.data_gzip().is_none());
+    assert!(file.data_br().is_none());
+    assert!(file.data_zstd().is_none());
+
+    // But the regular data should work
+    assert!(!file.data().is_empty());
+}

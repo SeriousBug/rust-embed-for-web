@@ -42,7 +42,16 @@ pub trait EmbedableFile {
     /// This is `Some` if precompression has been done. `None` if the file was
     /// not precompressed, either because the file doesn't benefit from
     /// compression or because zstd was disabled with `#[zstd = false]`.
+    #[cfg(feature = "compression-zstd")]
     fn data_zstd(&self) -> Option<Self::Data>;
+
+    /// The contents of the file, compressed with zstd.
+    ///
+    /// Always returns `None` when the compression-zstd feature is disabled.
+    #[cfg(not(feature = "compression-zstd"))]
+    fn data_zstd(&self) -> Option<Self::Data> {
+        None
+    }
     /// The UNIX timestamp of when the file was last modified.
     fn last_modified_timestamp(&self) -> Option<i64>;
     /// The rfc2822 encoded last modified date. This is the format you use for

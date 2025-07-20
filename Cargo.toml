@@ -23,7 +23,7 @@ zstd = "0.13"
 actix-web = "4.4"
 
 [features]
-default = ["interpolate-folder-path", "include-exclude"]
+default = ["interpolate-folder-path", "include-exclude", "compression-zstd"]
 # Even in debug mode use a release embed.
 # We use this to test embed code in our tests.
 always-embed = ["rust-embed-for-web-impl/always-embed"]
@@ -33,6 +33,7 @@ include-exclude = [
   "rust-embed-for-web-impl/include-exclude",
   "rust-embed-for-web-utils/include-exclude",
 ]
+compression-zstd = ["rust-embed-for-web-impl/compression-zstd", "rust-embed-for-web-utils/compression-zstd"]
 
 [workspace]
 members = ["impl", "utils"]
@@ -40,7 +41,7 @@ members = ["impl", "utils"]
 [[test]]
 name = "compression"
 path = "tests/compression.rs"
-required-features = ["always-embed"]
+required-features = ["always-embed", "compression-zstd"]
 
 [[test]]
 name = "gzip"
@@ -50,7 +51,7 @@ required-features = ["always-embed"]
 [[test]]
 name = "zstd"
 path = "tests/zstd.rs"
-required-features = ["always-embed"]
+required-features = ["always-embed", "compression-zstd"]
 
 [[test]]
 name = "include-exclude"

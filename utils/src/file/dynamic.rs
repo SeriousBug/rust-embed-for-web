@@ -48,6 +48,7 @@ impl EmbedableFile for DynamicFile {
         None
     }
 
+    #[cfg(feature = "compression-zstd")]
     fn data_zstd(&self) -> Option<Self::Data> {
         None
     }

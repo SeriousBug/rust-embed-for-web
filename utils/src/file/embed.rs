@@ -15,6 +15,7 @@ pub struct EmbeddedFile {
     data: &'static [u8],
     data_gzip: Option<&'static [u8]>,
     data_br: Option<&'static [u8]>,
+    #[cfg(feature = "compression-zstd")]
     data_zstd: Option<&'static [u8]>,
     hash: &'static str,
     etag: &'static str,
@@ -43,6 +44,7 @@ impl EmbedableFile for EmbeddedFile {
         self.data_br
     }
 
+    #[cfg(feature = "compression-zstd")]
     fn data_zstd(&self) -> Option<Self::Data> {
         self.data_zstd
     }
@@ -73,6 +75,7 @@ impl EmbeddedFile {
     #[allow(clippy::too_many_arguments)]
     /// This is used internally in derived code to create embedded file objects.
     /// You don't want to manually use this function!
+    #[cfg(feature = "compression-zstd")]
     pub fn __internal_make(
         // Make sure that the order of these parameters is correct in respect to
         // the file contents! And if you are changing or reordering any of
@@ -94,6 +97,39 @@ impl EmbeddedFile {
             data_gzip,
             data_br,
             data_zstd,
+            hash,
+            etag,
+            last_modified,
+            last_modified_timestamp,
+            mime_type,
+        }
+    }
+
+    #[doc(hidden)]
+    #[allow(clippy::too_many_arguments)]
+    /// This is used internally in derived code to create embedded file objects.
+    /// You don't want to manually use this function!
+    #[cfg(not(feature = "compression-zstd"))]
+    pub fn __internal_make(
+        // Make sure that the order of these parameters is correct in respect to
+        // the file contents! And if you are changing or reordering any of
+        // these, make sure to update the corresponding call in `impl`
+        name: &'static str,
+        data: &'static [u8],
+        data_gzip: Option<&'static [u8]>,
+        data_br: Option<&'static [u8]>,
+        _data_zstd: Option<&'static [u8]>, // Ignored when feature disabled
+        hash: &'static str,
+        etag: &'static str,
+        last_modified: Option<&'static str>,
+        last_modified_timestamp: Option<i64>,
+        mime_type: Option<&'static str>,
+    ) -> EmbeddedFile {
+        EmbeddedFile {
+            name,
+            data,
+            data_gzip,
+            data_br,
             hash,
             etag,
             last_modified,

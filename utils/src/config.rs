@@ -21,7 +21,10 @@ impl Default for Config {
             exclude: vec![],
             gzip: true,
             br: true,
+            #[cfg(feature = "compression-zstd")]
             zstd: true,
+            #[cfg(not(feature = "compression-zstd"))]
+            zstd: false,
         }
     }
 }
@@ -107,6 +110,13 @@ impl Config {
     }
 
     pub fn should_zstd(&self) -> bool {
-        self.zstd
+        #[cfg(feature = "compression-zstd")]
+        {
+            self.zstd
+        }
+        #[cfg(not(feature = "compression-zstd"))]
+        {
+            false
+        }
     }
 }
