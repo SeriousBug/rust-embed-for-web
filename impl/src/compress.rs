@@ -42,9 +42,14 @@ pub(crate) fn compress_br(data: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
+/// Compresses data using zstd compression.
+///
+/// Returns the compressed data if it's smaller than the threshold, `None` otherwise.
+/// Uses compression level 3 as a balance between compression ratio and speed.
 #[cfg(feature = "compression-zstd")]
 pub(crate) fn compress_zstd(data: &[u8]) -> Option<Vec<u8>> {
     let mut data_zstd: Vec<u8> = Vec::new();
+    // Level 3 provides good compression with reasonable speed for build-time compression
     let mut encoder = ZstdEncoder::new(&mut data_zstd, 3).expect("Failed to create zstd encoder");
     encoder
         .write_all(data)

@@ -23,7 +23,7 @@ zstd = "0.13"
 actix-web = "4.4"
 
 [features]
-default = ["interpolate-folder-path", "include-exclude", "compression-zstd"]
+default = ["interpolate-folder-path", "include-exclude"]
 # Even in debug mode use a release embed.
 # We use this to test embed code in our tests.
 always-embed = ["rust-embed-for-web-impl/always-embed"]

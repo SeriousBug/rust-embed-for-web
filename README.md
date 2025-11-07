@@ -76,9 +76,11 @@ archives already don't include their compressed versions. However you can
 
 ## Features
 
-Both of the following features are enabled by default.
+### Default Features
 
-### `interpolate-folder-path`
+The following features are enabled by default.
+
+#### `interpolate-folder-path`
 
 Allow environment variables and `~`s to be used in the `folder` path. Example:
 
@@ -91,7 +93,7 @@ struct Asset;
 `~` will expand into your home folder, and `${PROJECT_NAME}` will expand into
 the value of the `PROJECT_NAME` environment variable.
 
-### `include-exclude`
+#### `include-exclude`
 
 You can filter which files are embedded by adding one or more `#[include = "*.txt"]` and `#[exclude = "*.jpg"]` attributes.
 Matching is done on relative file paths --the paths you use for the `.get` call-- via [`globset`](https://docs.rs/globset/latest/globset/).
@@ -111,7 +113,26 @@ For example, if you wanted to exclude all `.svg` files except for one named
 struct Assets;
 ```
 
-### `prefix`
+### Optional Features
+
+#### `compression-zstd`
+
+Enables zstd compression support for embedded files. When enabled, files will be compressed with zstd (in addition to gzip and brotli), allowing you to serve zstd-compressed content to clients that support it.
+
+**Note:** This feature is **not enabled by default** because the `zstd` crate uses C bindings, which may not be compatible with all build environments.
+
+To enable zstd compression, add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+rust-embed-for-web = { version = "11.2.1", features = ["compression-zstd"] }
+```
+
+You can also disable zstd compression for specific embeds using the `#[zstd = false]` attribute as described in the "Disabling compression" section above.
+
+### Other Configuration
+
+#### `prefix`
 
 You can specify a prefix, which will be added to the path of the files. For example:
 

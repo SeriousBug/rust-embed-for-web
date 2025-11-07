@@ -61,6 +61,7 @@ impl Config {
         self.br = status;
     }
 
+    /// Enable or disable zstd compression for embedded files.
     pub fn set_zstd(&mut self, status: bool) {
         self.zstd = status;
     }
@@ -109,6 +110,10 @@ impl Config {
         self.br
     }
 
+    /// Check if zstd compression should be used for embedded files.
+    ///
+    /// Returns `false` when the compression-zstd feature is not enabled,
+    /// even if the config value is set to `true`.
     pub fn should_zstd(&self) -> bool {
         #[cfg(feature = "compression-zstd")]
         {
