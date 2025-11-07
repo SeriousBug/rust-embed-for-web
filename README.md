@@ -24,7 +24,7 @@ executable in exchange for better performance at runtime. In particular:
   or decompress anything at runtime.
   - If the compression makes little difference, for example a jpeg file won't
     compress much further if at all, then the compressed version is not included.
-  - You can also disable this behavior by adding an attribute `#[gzip = false]` and `#[br = false]`
+  - You can also disable this behavior by adding an attribute `#[gzip = false]`, `#[br = false]`, or `#[zstd = false]`
     When disabled, the compressed files won't be included for that embed.
 - Some metadata that is useful for web headers like `ETag` and `Last-Modified`
   are computed ahead of time and embedded into the executable. This makes it
@@ -68,17 +68,19 @@ The path for the `folder` is resolved relative to where `Cargo.toml` is.
 
 ### Disabling compression
 
-You can add `#[gzip = false]` and/or `#[br = false]` attributes to your embed to
-disable gzip and brotli compression for the files in that embed.
+You can add `#[gzip = false]`, `#[br = false]`, and/or `#[zstd = false]` attributes to your embed to
+disable gzip, brotli, and/or zstd compression for the files in that embed.
 `rust-embed-for-web` will only include compressed files where the compression
 actually makes files smaller so files that won't compress well like images or
 archives already don't include their compressed versions. However you can
 
 ## Features
 
-Both of the following features are enabled by default.
+### Default Features
 
-### `interpolate-folder-path`
+The following features are enabled by default.
+
+#### `interpolate-folder-path`
 
 Allow environment variables and `~`s to be used in the `folder` path. Example:
 
@@ -91,7 +93,7 @@ struct Asset;
 `~` will expand into your home folder, and `${PROJECT_NAME}` will expand into
 the value of the `PROJECT_NAME` environment variable.
 
-### `include-exclude`
+#### `include-exclude`
 
 You can filter which files are embedded by adding one or more `#[include = "*.txt"]` and `#[exclude = "*.jpg"]` attributes.
 Matching is done on relative file paths --the paths you use for the `.get` call-- via [`globset`](https://docs.rs/globset/latest/globset/).
@@ -111,7 +113,26 @@ For example, if you wanted to exclude all `.svg` files except for one named
 struct Assets;
 ```
 
-### `prefix`
+### Optional Features
+
+#### `compression-zstd`
+
+Enables zstd compression support for embedded files. When enabled, files will be compressed with zstd (in addition to gzip and brotli), allowing you to serve zstd-compressed content to clients that support it.
+
+**Note:** This feature is **not enabled by default** because the `zstd` crate uses C bindings, which may not be compatible with all build environments.
+
+To enable zstd compression, add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+rust-embed-for-web = { version = "11.2.1", features = ["compression-zstd"] }
+```
+
+You can also disable zstd compression for specific embeds using the `#[zstd = false]` attribute as described in the "Disabling compression" section above.
+
+### Other Configuration
+
+#### `prefix`
 
 You can specify a prefix, which will be added to the path of the files. For example:
 

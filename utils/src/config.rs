@@ -9,6 +9,7 @@ pub struct Config {
     exclude: Vec<GlobMatcher>,
     gzip: bool,
     br: bool,
+    zstd: bool,
 }
 
 impl Default for Config {
@@ -20,6 +21,10 @@ impl Default for Config {
             exclude: vec![],
             gzip: true,
             br: true,
+            #[cfg(feature = "compression-zstd")]
+            zstd: true,
+            #[cfg(not(feature = "compression-zstd"))]
+            zstd: false,
         }
     }
 }
@@ -54,6 +59,11 @@ impl Config {
 
     pub fn set_br(&mut self, status: bool) {
         self.br = status;
+    }
+
+    /// Enable or disable zstd compression for embedded files.
+    pub fn set_zstd(&mut self, status: bool) {
+        self.zstd = status;
     }
 
     #[cfg(feature = "include-exclude")]
@@ -98,5 +108,20 @@ impl Config {
 
     pub fn should_br(&self) -> bool {
         self.br
+    }
+
+    /// Check if zstd compression should be used for embedded files.
+    ///
+    /// Returns `false` when the compression-zstd feature is not enabled,
+    /// even if the config value is set to `true`.
+    pub fn should_zstd(&self) -> bool {
+        #[cfg(feature = "compression-zstd")]
+        {
+            self.zstd
+        }
+        #[cfg(not(feature = "compression-zstd"))]
+        {
+            false
+        }
     }
 }

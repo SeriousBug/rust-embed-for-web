@@ -42,6 +42,7 @@ pub(crate) fn read_attribute_config(ast: &syn::DeriveInput) -> Config {
                 "exclude" => parse_str(attribute).map(|v| config.add_exclude(v)),
                 "gzip" => parse_bool(attribute).map(|v| config.set_gzip(v)),
                 "br" => parse_bool(attribute).map(|v| config.set_br(v)),
+                "zstd" => parse_bool(attribute).map(|v| config.set_zstd(v)),
                 _ => None,
             };
         }
