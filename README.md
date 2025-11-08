@@ -43,7 +43,7 @@ executable in exchange for better performance at runtime. In particular:
 
 ```toml
 [dependencies]
-rust-embed-for-web="11.1.4"
+rust-embed-for-web="11.3.0"
 ```
 
 ## Usage
@@ -125,7 +125,7 @@ To enable zstd compression, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-embed-for-web = { version = "11.2.1", features = ["compression-zstd"] }
+rust-embed-for-web = { version = "11.3.0", features = ["compression-zstd"] }
 ```
 
 You can also disable zstd compression for specific embeds using the `#[zstd = false]` attribute as described in the "Disabling compression" section above.
