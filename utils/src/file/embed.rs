@@ -76,7 +76,7 @@ impl EmbeddedFile {
     /// This is used internally in derived code to create embedded file objects.
     /// You don't want to manually use this function!
     #[cfg(feature = "compression-zstd")]
-    pub fn __internal_make(
+    pub const fn __internal_make(
         // Make sure that the order of these parameters is correct in respect to
         // the file contents! And if you are changing or reordering any of
         // these, make sure to update the corresponding call in `impl`
@@ -110,7 +110,7 @@ impl EmbeddedFile {
     /// This is used internally in derived code to create embedded file objects.
     /// You don't want to manually use this function!
     #[cfg(not(feature = "compression-zstd"))]
-    pub fn __internal_make(
+    pub const fn __internal_make(
         // Make sure that the order of these parameters is correct in respect to
         // the file contents! And if you are changing or reordering any of
         // these, make sure to update the corresponding call in `impl`
