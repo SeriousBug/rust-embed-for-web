@@ -41,29 +41,57 @@ fn find_attribute_values(ast: &syn::DeriveInput, attr_name: &str) -> Vec<String>
         .collect()
 }
 
-fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
+fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> syn::Result<TokenStream2> {
     match ast.data {
         Data::Struct(ref data) => match data.fields {
             Fields::Unit => {}
-            _ => panic!("RustEmbed can only be derived for unit structs"),
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    ast,
+                    "RustEmbed can only be derived for unit structs",
+                ))
+            }
         },
-        _ => panic!("RustEmbed can only be derived for unit structs"),
+        _ => {
+            return Err(syn::Error::new_spanned(
+                ast,
+                "RustEmbed can only be derived for unit structs",
+            ))
+        }
     };
 
     let mut folder_paths = find_attribute_values(ast, "folder");
     if folder_paths.len() != 1 {
-        panic!("#[derive(RustEmbed)] must contain one and only one folder attribute");
+        return Err(syn::Error::new_spanned(
+            ast,
+            "#[derive(RustEmbed)] must contain one and only one folder attribute",
+        ));
     }
     let folder_path = folder_paths.remove(0);
     #[cfg(feature = "interpolate-folder-path")]
-    let folder_path = shellexpand::full(&folder_path).unwrap().to_string();
+    let folder_path = shellexpand::full(&folder_path)
+        .map_err(|e| {
+            syn::Error::new_spanned(ast, format!("Could not interpolate folder path: {e}"))
+        })?
+        .to_string();
 
     // Base relative paths on the Cargo.toml location
     let folder_path = if Path::new(&folder_path).is_relative() {
-        Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").map_err(|e| {
+            syn::Error::new_spanned(
+                ast,
+                format!("Could not read the CARGO_MANIFEST_DIR environment variable: {e}"),
+            )
+        })?;
+        Path::new(&manifest_dir)
             .join(folder_path)
             .to_str()
-            .unwrap()
+            .ok_or_else(|| {
+                syn::Error::new_spanned(
+                    ast,
+                    "The folder path does not have a valid string representation",
+                )
+            })?
             .to_owned()
     } else {
         folder_path
@@ -88,13 +116,16 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
     } else if prefixes.len() == 1 {
         prefixes[0].clone()
     } else {
-        panic!("#[derive(RustEmbed)] must have at most one prefix, you supplied several");
+        return Err(syn::Error::new_spanned(
+            ast,
+            "#[derive(RustEmbed)] must have at most one prefix, you supplied several",
+        ));
     };
 
     if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
-        generate_dynamic_impl(&ast.ident, &config, &folder_path, &prefix)
+        Ok(generate_dynamic_impl(&ast.ident, &config, &folder_path, &prefix))
     } else {
-        generate_embed_impl(&ast.ident, &config, &folder_path, &prefix)
+        Ok(generate_embed_impl(&ast.ident, &config, &folder_path, &prefix))
     }
 }
 
@@ -118,7 +149,12 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
 ///
 /// Please check the package readme for more details.
 pub fn derive_input_object(input: TokenStream) -> TokenStream {
-    let ast: DeriveInput = syn::parse(input).unwrap();
-    let gen = impl_rust_embed_for_web(&ast);
-    gen.into()
+    let ast: DeriveInput = match syn::parse(input) {
+        Ok(ast) => ast,
+        Err(e) => return e.to_compile_error().into(),
+    };
+    match impl_rust_embed_for_web(&ast) {
+        Ok(gen) => gen.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
 }
