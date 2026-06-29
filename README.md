@@ -152,6 +152,28 @@ fn main() {
 }
 ```
 
+#### `allow_missing`
+
+By default, the build fails if the embedded `folder` does not exist at compile
+time. Add `#[allow_missing = true]` to allow a missing folder. Instead of
+failing the build, the macro generates an empty asset set, so `get` returns
+`None` for every path.
+
+```rust
+#[derive(RustEmbed)]
+#[folder = "generated/"]
+#[allow_missing = true]
+struct Asset;
+
+fn main() {
+  // If the `generated/` folder was not present at build time, this is None.
+  let maybe = Asset::get("image.png");
+}
+```
+
+This is useful when a folder is produced by another build step that may not have
+run yet, for example during local development or in CI.
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

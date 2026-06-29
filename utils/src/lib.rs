@@ -28,8 +28,13 @@ pub fn get_files<'t>(
         .filter_map(move |e| {
             let rel_path = path_to_str(e.path().strip_prefix(folder_path).unwrap());
             let rel_path = format!("{prefix}{rel_path}");
-            let full_canonical_path =
-                path_to_str(std::fs::canonicalize(e.path()).expect("Could not get canonical path"));
+            let full_canonical_path = match std::fs::canonicalize(e.path()) {
+                Ok(path) => path_to_str(path),
+                // Tolerate entries that disappear (e.g. broken symlinks) so a
+                // missing path does not abort the whole build.
+                Err(err) if err.kind() == std::io::ErrorKind::NotFound => return None,
+                Err(err) => panic!("Could not get canonical path: {}", err),
+            };
 
             let rel_path = if std::path::MAIN_SEPARATOR == '\\' {
                 rel_path.replace('\\', "/")

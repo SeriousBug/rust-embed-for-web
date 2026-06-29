@@ -43,6 +43,7 @@ pub(crate) fn read_attribute_config(ast: &syn::DeriveInput) -> Config {
                 "gzip" => parse_bool(attribute).map(|v| config.set_gzip(v)),
                 "br" => parse_bool(attribute).map(|v| config.set_br(v)),
                 "zstd" => parse_bool(attribute).map(|v| config.set_zstd(v)),
+                "allow_missing" => parse_bool(attribute).map(|v| config.set_allow_missing(v)),
                 _ => None,
             };
         }
