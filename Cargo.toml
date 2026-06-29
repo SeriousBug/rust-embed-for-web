@@ -9,6 +9,7 @@ license = "MIT"
 keywords = ["http", "embed", "static", "web", "server"]
 categories = ["web-programming", "filesystem"]
 edition = "2018"
+rust-version = "1.70"
 
 [dependencies]
 walkdir = "2.4.0"

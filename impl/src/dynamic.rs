@@ -1,22 +1,12 @@
-#[cfg(feature = "include-exclude")]
-use globset::GlobMatcher;
 use proc_macro2::TokenStream as TokenStream2;
 use rust_embed_for_web_utils::Config;
 
 use crate::embed::MakeEmbed;
 
-impl MakeEmbed for Vec<String> {
+impl MakeEmbed for [String] {
     fn make_embed(&self) -> TokenStream2 {
         let v = self;
         quote! { &[#(#v),*] }
-    }
-}
-
-#[cfg(feature = "include-exclude")]
-impl MakeEmbed for Vec<GlobMatcher> {
-    fn make_embed(&self) -> TokenStream2 {
-        let patterns: Vec<String> = self.iter().map(|v| v.glob().to_string()).collect();
-        patterns.make_embed()
     }
 }
 
@@ -79,7 +69,12 @@ pub(crate) fn generate_dynamic_impl(
     quote! {
       impl #ident {
         fn get(path: &str) -> Option<rust_embed_for_web::DynamicFile> {
-          let config = { #config };
+          // Build the config (and its compiled glob matchers) once per asset
+          // struct and reuse it on every call, instead of recompiling the
+          // globs for each path lookup.
+          static CONFIG: std::sync::OnceLock<rust_embed_for_web::utils::Config> =
+              std::sync::OnceLock::new();
+          let config = CONFIG.get_or_init(|| { #config });
           let path = path.strip_prefix(#prefix)?;
           if config.should_include(path) {
             let folder_path: std::path::PathBuf = std::convert::From::from(#folder_path);

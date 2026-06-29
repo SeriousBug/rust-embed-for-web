@@ -1,12 +1,58 @@
 #[cfg(feature = "include-exclude")]
-use globset::{Glob, GlobMatcher};
+use globset::{Glob, GlobSet, GlobSetBuilder};
+#[cfg(feature = "include-exclude")]
+use std::sync::OnceLock;
+
+/// A set of glob patterns that are compiled into a single [`GlobSet`] once and
+/// then reused for every path check.
+///
+/// The original pattern strings are kept around so that the build-time
+/// configuration can be embedded into the generated code (see the dynamic mode
+/// codegen). The compiled `GlobSet` is built lazily on the first match and
+/// cached in a `OnceLock`, so we only pay the glob compilation cost once rather
+/// than on every path check.
+#[cfg(feature = "include-exclude")]
+#[derive(Debug, Default)]
+pub struct PathMatcher {
+    patterns: Vec<String>,
+    set: OnceLock<GlobSet>,
+}
+
+#[cfg(feature = "include-exclude")]
+impl PathMatcher {
+    fn add(&mut self, pattern: String) {
+        self.patterns.push(pattern);
+        // A previously built set would be stale now, so drop it. It will be
+        // rebuilt on the next match. In practice all patterns are added before
+        // any match happens, so the set is only ever built once.
+        self.set = OnceLock::new();
+    }
+
+    fn glob_set(&self) -> &GlobSet {
+        self.set.get_or_init(|| {
+            let mut builder = GlobSetBuilder::new();
+            for pattern in &self.patterns {
+                builder.add(Glob::new(pattern).expect("Failed to parse glob pattern"));
+            }
+            builder.build().expect("Failed to build glob set")
+        })
+    }
+
+    fn is_match(&self, path: &str) -> bool {
+        self.glob_set().is_match(path)
+    }
+
+    fn patterns(&self) -> &[String] {
+        &self.patterns
+    }
+}
 
 #[derive(Debug)]
 pub struct Config {
     #[cfg(feature = "include-exclude")]
-    include: Vec<GlobMatcher>,
+    include: PathMatcher,
     #[cfg(feature = "include-exclude")]
-    exclude: Vec<GlobMatcher>,
+    exclude: PathMatcher,
     gzip: bool,
     br: bool,
     zstd: bool,
@@ -16,9 +62,9 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             #[cfg(feature = "include-exclude")]
-            include: vec![],
+            include: PathMatcher::default(),
             #[cfg(feature = "include-exclude")]
-            exclude: vec![],
+            exclude: PathMatcher::default(),
             gzip: true,
             br: true,
             #[cfg(feature = "compression-zstd")]
@@ -37,20 +83,12 @@ impl Config {
     // Builder functions
     #[cfg(feature = "include-exclude")]
     pub fn add_include(&mut self, pattern: String) {
-        self.include.push(
-            Glob::new(&pattern)
-                .expect("Failed to parse glob pattern for include")
-                .compile_matcher(),
-        );
+        self.include.add(pattern);
     }
 
     #[cfg(feature = "include-exclude")]
     pub fn add_exclude(&mut self, pattern: String) {
-        self.exclude.push(
-            Glob::new(&pattern)
-                .expect("Failed to parse glob pattern for exclude")
-                .compile_matcher(),
-        );
+        self.exclude.add(pattern);
     }
 
     pub fn set_gzip(&mut self, status: bool) {
@@ -67,13 +105,13 @@ impl Config {
     }
 
     #[cfg(feature = "include-exclude")]
-    pub fn get_includes(&self) -> &Vec<GlobMatcher> {
-        &self.include
+    pub fn get_includes(&self) -> &[String] {
+        self.include.patterns()
     }
 
     #[cfg(feature = "include-exclude")]
-    pub fn get_excludes(&self) -> &Vec<GlobMatcher> {
-        &self.exclude
+    pub fn get_excludes(&self) -> &[String] {
+        self.exclude.patterns()
     }
 
     /// Check if a file at some path should be included based on this config.
@@ -86,15 +124,10 @@ impl Config {
         #[cfg(feature = "include-exclude")]
         {
             // Includes have priority.
-            self.include
-            .iter()
-            .any(|include| include.is_match(path))
+            self.include.is_match(path)
             // If not, then we check if the file has been excluded. Any file
-            // that is not explicitly excluded will be 
-            || !self
-                .exclude
-                .iter()
-                .any(|exclude| exclude.is_match(path))
+            // that is not explicitly excluded will be included.
+            || !self.exclude.is_match(path)
         }
         #[cfg(not(feature = "include-exclude"))]
         {
