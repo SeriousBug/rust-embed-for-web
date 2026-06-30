@@ -71,6 +71,17 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
 
     let config = read_attribute_config(ast);
 
+    // If the folder does not exist, either fail the build or, when the
+    // `allow_missing` attribute is set, generate an empty asset set.
+    if !Path::new(&folder_path).exists() && !config.allow_missing() {
+        panic!(
+            "#[derive(RustEmbed)] folder '{}' does not exist. \
+             Set `#[allow_missing = true]` to allow a missing folder and \
+             generate an empty asset set instead.",
+            folder_path
+        );
+    }
+
     let prefixes = find_attribute_values(ast, "prefix");
     let prefix = if prefixes.is_empty() {
         "".to_string()
@@ -89,7 +100,7 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
 
 #[proc_macro_derive(
     RustEmbed,
-    attributes(folder, prefix, include, exclude, gzip, br, zstd)
+    attributes(folder, prefix, include, exclude, gzip, br, zstd, allow_missing)
 )]
 /// A folder that is embedded into your program.
 ///

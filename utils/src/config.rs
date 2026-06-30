@@ -10,6 +10,7 @@ pub struct Config {
     gzip: bool,
     br: bool,
     zstd: bool,
+    allow_missing: bool,
 }
 
 impl Default for Config {
@@ -25,6 +26,7 @@ impl Default for Config {
             zstd: true,
             #[cfg(not(feature = "compression-zstd"))]
             zstd: false,
+            allow_missing: false,
         }
     }
 }
@@ -64,6 +66,14 @@ impl Config {
     /// Enable or disable zstd compression for embedded files.
     pub fn set_zstd(&mut self, status: bool) {
         self.zstd = status;
+    }
+
+    /// Allow the embedded folder to be missing at compile time.
+    ///
+    /// When enabled, a folder that does not exist produces an empty asset set
+    /// instead of a build error.
+    pub fn set_allow_missing(&mut self, status: bool) {
+        self.allow_missing = status;
     }
 
     #[cfg(feature = "include-exclude")]
@@ -123,5 +133,10 @@ impl Config {
         {
             false
         }
+    }
+
+    /// Whether a missing embedded folder is allowed.
+    pub fn allow_missing(&self) -> bool {
+        self.allow_missing
     }
 }

@@ -28,8 +28,17 @@ pub fn get_files<'t>(
         .filter_map(move |e| {
             let rel_path = path_to_str(e.path().strip_prefix(folder_path).unwrap());
             let rel_path = format!("{prefix}{rel_path}");
-            let full_canonical_path =
-                path_to_str(std::fs::canonicalize(e.path()).expect("Could not get canonical path"));
+            let full_canonical_path = match std::fs::canonicalize(e.path()) {
+                Ok(path) => path_to_str(path),
+                // With allow_missing set, tolerate entries that disappear (e.g.
+                // broken symlinks) instead of aborting the build.
+                Err(err)
+                    if config.allow_missing() && err.kind() == std::io::ErrorKind::NotFound =>
+                {
+                    return None
+                }
+                Err(err) => panic!("Could not get canonical path: {}", err),
+            };
 
             let rel_path = if std::path::MAIN_SEPARATOR == '\\' {
                 rel_path.replace('\\', "/")
@@ -53,4 +62,25 @@ fn path_to_str<P: AsRef<std::path::Path>>(p: P) -> String {
         .to_str()
         .expect("Path does not have a string representation")
         .to_owned()
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn allow_missing_skips_broken_symlinks() {
+        let dir = std::env::temp_dir().join(format!("rust-embed-for-web-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let link = dir.join("broken.txt");
+        let _ = std::fs::remove_file(&link);
+        std::os::unix::fs::symlink(dir.join("does-not-exist"), &link).unwrap();
+
+        let mut config = Config::default();
+        config.set_allow_missing(true);
+        let files: Vec<_> = get_files(dir.to_str().unwrap(), &config, "").collect();
+
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(files.is_empty());
+    }
 }
