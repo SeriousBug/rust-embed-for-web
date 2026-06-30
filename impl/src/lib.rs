@@ -123,9 +123,19 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> syn::Result<TokenStream2> 
     };
 
     if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
-        Ok(generate_dynamic_impl(&ast.ident, &config, &folder_path, &prefix))
+        Ok(generate_dynamic_impl(
+            &ast.ident,
+            &config,
+            &folder_path,
+            &prefix,
+        ))
     } else {
-        Ok(generate_embed_impl(&ast.ident, &config, &folder_path, &prefix))
+        Ok(generate_embed_impl(
+            &ast.ident,
+            &config,
+            &folder_path,
+            &prefix,
+        ))
     }
 }
 
@@ -156,5 +166,58 @@ pub fn derive_input_object(input: TokenStream) -> TokenStream {
     match impl_rust_embed_for_web(&ast) {
         Ok(gen) => gen.into(),
         Err(e) => e.to_compile_error().into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::impl_rust_embed_for_web;
+
+    fn err_message(input: &str) -> String {
+        let ast: syn::DeriveInput = syn::parse_str(input).unwrap();
+        impl_rust_embed_for_web(&ast)
+            .expect_err("expected the derive input to fail")
+            .to_string()
+    }
+
+    #[test]
+    fn rejects_enums() {
+        assert!(err_message("#[folder = \"src\"] enum Bad { A }")
+            .contains("can only be derived for unit structs"));
+    }
+
+    #[test]
+    fn rejects_structs_with_fields() {
+        assert!(err_message("#[folder = \"src\"] struct Bad { field: u32 }")
+            .contains("can only be derived for unit structs"));
+    }
+
+    #[test]
+    fn requires_a_folder_attribute() {
+        assert!(err_message("struct Bad;").contains("one and only one folder attribute"));
+    }
+
+    #[test]
+    fn rejects_multiple_folder_attributes() {
+        assert!(
+            err_message("#[folder = \"src\"] #[folder = \"src\"] struct Bad;")
+                .contains("one and only one folder attribute")
+        );
+    }
+
+    #[test]
+    fn rejects_multiple_prefix_attributes() {
+        assert!(err_message(
+            "#[folder = \"src\"] #[prefix = \"a/\"] #[prefix = \"b/\"] struct Bad;"
+        )
+        .contains("at most one prefix"));
+    }
+
+    #[test]
+    fn accepts_a_valid_unit_struct() {
+        // `src` exists relative to this crate's Cargo.toml, so the derive
+        // resolves the folder and emits an implementation.
+        let ast: syn::DeriveInput = syn::parse_str("#[folder = \"src\"] struct Good;").unwrap();
+        assert!(impl_rust_embed_for_web(&ast).is_ok());
     }
 }
