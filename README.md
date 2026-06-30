@@ -157,7 +157,9 @@ fn main() {
 By default, the build fails if the embedded `folder` does not exist at compile
 time. Add `#[allow_missing = true]` to instead generate an empty asset set, so
 `get` returns `None` for every path. This is useful when the folder is produced
-by another build step that may not have run yet.
+by another build step that may not have run yet when testing, where the code
+under test does not depend on the embedded files. Avoid relying on this in
+production builds.
 
 ## Contributors
 
