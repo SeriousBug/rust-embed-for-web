@@ -41,29 +41,57 @@ fn find_attribute_values(ast: &syn::DeriveInput, attr_name: &str) -> Vec<String>
         .collect()
 }
 
-fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
+fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> syn::Result<TokenStream2> {
     match ast.data {
         Data::Struct(ref data) => match data.fields {
             Fields::Unit => {}
-            _ => panic!("RustEmbed can only be derived for unit structs"),
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    ast,
+                    "RustEmbed can only be derived for unit structs",
+                ))
+            }
         },
-        _ => panic!("RustEmbed can only be derived for unit structs"),
+        _ => {
+            return Err(syn::Error::new_spanned(
+                ast,
+                "RustEmbed can only be derived for unit structs",
+            ))
+        }
     };
 
     let mut folder_paths = find_attribute_values(ast, "folder");
     if folder_paths.len() != 1 {
-        panic!("#[derive(RustEmbed)] must contain one and only one folder attribute");
+        return Err(syn::Error::new_spanned(
+            ast,
+            "#[derive(RustEmbed)] must contain one and only one folder attribute",
+        ));
     }
     let folder_path = folder_paths.remove(0);
     #[cfg(feature = "interpolate-folder-path")]
-    let folder_path = shellexpand::full(&folder_path).unwrap().to_string();
+    let folder_path = shellexpand::full(&folder_path)
+        .map_err(|e| {
+            syn::Error::new_spanned(ast, format!("Could not interpolate folder path: {e}"))
+        })?
+        .to_string();
 
     // Base relative paths on the Cargo.toml location
     let folder_path = if Path::new(&folder_path).is_relative() {
-        Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").map_err(|e| {
+            syn::Error::new_spanned(
+                ast,
+                format!("Could not read the CARGO_MANIFEST_DIR environment variable: {e}"),
+            )
+        })?;
+        Path::new(&manifest_dir)
             .join(folder_path)
             .to_str()
-            .unwrap()
+            .ok_or_else(|| {
+                syn::Error::new_spanned(
+                    ast,
+                    "The folder path does not have a valid string representation",
+                )
+            })?
             .to_owned()
     } else {
         folder_path
@@ -74,12 +102,14 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
     // If the folder does not exist, either fail the build or, when the
     // `allow_missing` attribute is set, generate an empty asset set.
     if !Path::new(&folder_path).exists() && !config.allow_missing() {
-        panic!(
-            "#[derive(RustEmbed)] folder '{}' does not exist. \
-             Set `#[allow_missing = true]` to allow a missing folder and \
-             generate an empty asset set instead.",
-            folder_path
-        );
+        return Err(syn::Error::new_spanned(
+            ast,
+            format!(
+                "#[derive(RustEmbed)] folder '{folder_path}' does not exist. \
+                 Set `#[allow_missing = true]` to allow a missing folder and \
+                 generate an empty asset set instead."
+            ),
+        ));
     }
 
     let prefixes = find_attribute_values(ast, "prefix");
@@ -88,13 +118,26 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
     } else if prefixes.len() == 1 {
         prefixes[0].clone()
     } else {
-        panic!("#[derive(RustEmbed)] must have at most one prefix, you supplied several");
+        return Err(syn::Error::new_spanned(
+            ast,
+            "#[derive(RustEmbed)] must have at most one prefix, you supplied several",
+        ));
     };
 
     if cfg!(debug_assertions) && !cfg!(feature = "always-embed") {
-        generate_dynamic_impl(&ast.ident, &config, &folder_path, &prefix)
+        Ok(generate_dynamic_impl(
+            &ast.ident,
+            &config,
+            &folder_path,
+            &prefix,
+        ))
     } else {
-        generate_embed_impl(&ast.ident, &config, &folder_path, &prefix)
+        Ok(generate_embed_impl(
+            &ast.ident,
+            &config,
+            &folder_path,
+            &prefix,
+        ))
     }
 }
 
@@ -118,7 +161,80 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> TokenStream2 {
 ///
 /// Please check the package readme for more details.
 pub fn derive_input_object(input: TokenStream) -> TokenStream {
-    let ast: DeriveInput = syn::parse(input).unwrap();
-    let gen = impl_rust_embed_for_web(&ast);
-    gen.into()
+    let ast: DeriveInput = match syn::parse(input) {
+        Ok(ast) => ast,
+        Err(e) => return e.to_compile_error().into(),
+    };
+    match impl_rust_embed_for_web(&ast) {
+        Ok(gen) => gen.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::impl_rust_embed_for_web;
+
+    fn err_message(input: &str) -> String {
+        let ast: syn::DeriveInput = syn::parse_str(input).unwrap();
+        impl_rust_embed_for_web(&ast)
+            .expect_err("expected the derive input to fail")
+            .to_string()
+    }
+
+    #[test]
+    fn rejects_enums() {
+        assert!(err_message("#[folder = \"src\"] enum Bad { A }")
+            .contains("can only be derived for unit structs"));
+    }
+
+    #[test]
+    fn rejects_structs_with_fields() {
+        assert!(err_message("#[folder = \"src\"] struct Bad { field: u32 }")
+            .contains("can only be derived for unit structs"));
+    }
+
+    #[test]
+    fn requires_a_folder_attribute() {
+        assert!(err_message("struct Bad;").contains("one and only one folder attribute"));
+    }
+
+    #[test]
+    fn rejects_multiple_folder_attributes() {
+        assert!(
+            err_message("#[folder = \"src\"] #[folder = \"src\"] struct Bad;")
+                .contains("one and only one folder attribute")
+        );
+    }
+
+    #[test]
+    fn rejects_multiple_prefix_attributes() {
+        assert!(err_message(
+            "#[folder = \"src\"] #[prefix = \"a/\"] #[prefix = \"b/\"] struct Bad;"
+        )
+        .contains("at most one prefix"));
+    }
+
+    #[test]
+    fn rejects_a_missing_folder() {
+        assert!(
+            err_message("#[folder = \"does-not-exist\"] struct Bad;").contains("does not exist")
+        );
+    }
+
+    #[test]
+    fn allows_a_missing_folder_when_opted_in() {
+        let ast: syn::DeriveInput =
+            syn::parse_str("#[folder = \"does-not-exist\"] #[allow_missing = true] struct Good;")
+                .unwrap();
+        assert!(impl_rust_embed_for_web(&ast).is_ok());
+    }
+
+    #[test]
+    fn accepts_a_valid_unit_struct() {
+        // `src` exists relative to this crate's Cargo.toml, so the derive
+        // resolves the folder and emits an implementation.
+        let ast: syn::DeriveInput = syn::parse_str("#[folder = \"src\"] struct Good;").unwrap();
+        assert!(impl_rust_embed_for_web(&ast).is_ok());
+    }
 }
