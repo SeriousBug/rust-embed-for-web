@@ -1,0 +1,16 @@
+coverage:
+  status:
+    project:
+      default:
+        # Allow a small drop so unrelated noise doesn't fail the build.
+        threshold: 1%
+    patch:
+      default:
+        threshold: 1%
+
+# Benchmark/example scaffolding is build/measurement-only code that isn't
+# exercised by the test suite, so it shouldn't count toward coverage.
+ignore:
+  - "benches"
+  - "build.rs"
+  - "examples"

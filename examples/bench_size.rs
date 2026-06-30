@@ -16,7 +16,9 @@ struct Assets;
 
 fn main() {
     // Runtime arg keeps the lookup from being optimized away.
-    let key = std::env::args().nth(1).unwrap_or_else(|| "file_00000.txt".to_string());
+    let key = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "file_00000.txt".to_string());
     match Assets::get(&key) {
         Some(file) => println!("found {}: {} bytes", key, file.data().len()),
         None => println!("not found: {key}"),
