@@ -102,12 +102,14 @@ fn impl_rust_embed_for_web(ast: &syn::DeriveInput) -> syn::Result<TokenStream2> 
     // If the folder does not exist, either fail the build or, when the
     // `allow_missing` attribute is set, generate an empty asset set.
     if !Path::new(&folder_path).exists() && !config.allow_missing() {
-        panic!(
-            "#[derive(RustEmbed)] folder '{}' does not exist. \
-             Set `#[allow_missing = true]` to allow a missing folder and \
-             generate an empty asset set instead.",
-            folder_path
-        );
+        return Err(syn::Error::new_spanned(
+            ast,
+            format!(
+                "#[derive(RustEmbed)] folder '{folder_path}' does not exist. \
+                 Set `#[allow_missing = true]` to allow a missing folder and \
+                 generate an empty asset set instead."
+            ),
+        ));
     }
 
     let prefixes = find_attribute_values(ast, "prefix");
@@ -211,6 +213,21 @@ mod tests {
             "#[folder = \"src\"] #[prefix = \"a/\"] #[prefix = \"b/\"] struct Bad;"
         )
         .contains("at most one prefix"));
+    }
+
+    #[test]
+    fn rejects_a_missing_folder() {
+        assert!(
+            err_message("#[folder = \"does-not-exist\"] struct Bad;").contains("does not exist")
+        );
+    }
+
+    #[test]
+    fn allows_a_missing_folder_when_opted_in() {
+        let ast: syn::DeriveInput =
+            syn::parse_str("#[folder = \"does-not-exist\"] #[allow_missing = true] struct Good;")
+                .unwrap();
+        assert!(impl_rust_embed_for_web(&ast).is_ok());
     }
 
     #[test]
