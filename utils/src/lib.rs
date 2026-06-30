@@ -30,9 +30,13 @@ pub fn get_files<'t>(
             let rel_path = format!("{prefix}{rel_path}");
             let full_canonical_path = match std::fs::canonicalize(e.path()) {
                 Ok(path) => path_to_str(path),
-                // Tolerate entries that disappear (e.g. broken symlinks) so a
-                // missing path does not abort the whole build.
-                Err(err) if err.kind() == std::io::ErrorKind::NotFound => return None,
+                // With allow_missing set, tolerate entries that disappear (e.g.
+                // broken symlinks) instead of aborting the build.
+                Err(err)
+                    if config.allow_missing() && err.kind() == std::io::ErrorKind::NotFound =>
+                {
+                    return None
+                }
                 Err(err) => panic!("Could not get canonical path: {}", err),
             };
 
