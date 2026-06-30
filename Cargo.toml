@@ -22,6 +22,9 @@ brotli = "8.0"
 zstd = "0.13"
 actix-web = "4.4"
 criterion = "0.7"
+# Pin below 0.3.52: it changed the Parsable::parse signature, which breaks
+# cookie 0.16.2 (pulled in transitively by actix-web). Dev-only constraint.
+time = ">=0.3, <0.3.52"
 
 [features]
 default = ["interpolate-folder-path", "include-exclude"]
