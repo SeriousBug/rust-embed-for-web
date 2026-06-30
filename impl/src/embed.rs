@@ -105,7 +105,9 @@ pub(crate) fn generate_embed_impl(
     folder_path: &str,
     prefix: &str,
 ) -> TokenStream2 {
-    let embeds: Vec<TokenStream2> = get_files(folder_path, config, prefix)
+    // Collect (path, embed-tokens) pairs and sort them by path so the generated
+    // table can be searched at runtime with a binary search.
+    let mut entries: Vec<(String, TokenStream2)> = get_files(folder_path, config, prefix)
         .filter_map(
             |FileEntry {
                  rel_path,
@@ -113,23 +115,35 @@ pub(crate) fn generate_embed_impl(
              }| {
                 if let Ok(file) = DynamicFile::read_from_fs(full_canonical_path) {
                     let file_embed = EmbedDynamicFile::new(&file, config).make_embed();
-                    Some(quote! {
-                        #rel_path => Some(#file_embed),
-                    })
+                    Some((rel_path, file_embed))
                 } else {
                     None
                 }
             },
         )
         .collect();
+    entries.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+    let embeds: Vec<TokenStream2> = entries
+        .into_iter()
+        .map(|(rel_path, file_embed)| {
+            quote! {
+                (#rel_path, #file_embed),
+            }
+        })
+        .collect();
 
     quote! {
       impl #ident {
           fn get(path: &str) -> Option<rust_embed_for_web::EmbeddedFile> {
-              match path {
-                    #(#embeds)*
-                    _ => None,
-              }
+              // Sorted by path at macro-expansion time, so a binary search is valid.
+              const ENTRIES: &[(&str, rust_embed_for_web::EmbeddedFile)] = &[
+                  #(#embeds)*
+              ];
+              ENTRIES
+                  .binary_search_by_key(&path, |__rust_embed_entry| __rust_embed_entry.0)
+                  .ok()
+                  .map(|__rust_embed_idx| ENTRIES[__rust_embed_idx].1)
           }
       }
 

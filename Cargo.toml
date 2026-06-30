@@ -21,6 +21,7 @@ flate2 = "1.0"
 brotli = "8.0"
 zstd = "0.13"
 actix-web = "4.4"
+criterion = "0.7"
 
 [features]
 default = ["interpolate-folder-path", "include-exclude"]
@@ -34,6 +35,10 @@ include-exclude = [
   "rust-embed-for-web-utils/include-exclude",
 ]
 compression-zstd = ["rust-embed-for-web-impl/compression-zstd", "rust-embed-for-web-utils/compression-zstd"]
+# Generate a large fixture folder (via build.rs) for benchmarks. Off by
+# default so normal and published builds are unaffected. Implies always-embed
+# so the embedded (release) code path is exercised even in debug builds.
+bench-fixtures = ["always-embed"]
 
 [workspace]
 members = ["impl", "utils"]
@@ -62,3 +67,14 @@ required-features = ["always-embed", "compression-zstd"]
 name = "include-exclude"
 path = "tests/include-exclude.rs"
 required-features = ["include-exclude"]
+
+[[bench]]
+name = "embed_lookup"
+path = "benches/embed_lookup.rs"
+harness = false
+required-features = ["bench-fixtures"]
+
+[[example]]
+name = "bench_size"
+path = "examples/bench_size.rs"
+required-features = ["bench-fixtures"]
