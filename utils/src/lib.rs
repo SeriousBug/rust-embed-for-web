@@ -63,3 +63,24 @@ fn path_to_str<P: AsRef<std::path::Path>>(p: P) -> String {
         .expect("Path does not have a string representation")
         .to_owned()
 }
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn allow_missing_skips_broken_symlinks() {
+        let dir = std::env::temp_dir().join(format!("rust-embed-for-web-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let link = dir.join("broken.txt");
+        let _ = std::fs::remove_file(&link);
+        std::os::unix::fs::symlink(dir.join("does-not-exist"), &link).unwrap();
+
+        let mut config = Config::default();
+        config.set_allow_missing(true);
+        let files: Vec<_> = get_files(dir.to_str().unwrap(), &config, "").collect();
+
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(files.is_empty());
+    }
+}
