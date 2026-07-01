@@ -29,3 +29,29 @@ jobs:
           files: lcov.info
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+  publish-dry-run:
+    name: publish dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Detect manifest changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            manifests:
+              - '**/Cargo.toml'
+      - name: Install Rust
+        if: steps.changes.outputs.manifests == 'true'
+        run: rustup toolchain install stable
+      - uses: Swatinem/rust-cache@v2
+        if: steps.changes.outputs.manifests == 'true'
+      - name: Verify crates publish in isolation
+        # cargo publish compiles each packaged crate on its own, catching
+        # missing per-crate features that workspace feature unification hides
+        # during a normal build (e.g. syn's "printing" feature). --workspace
+        # resolves inter-crate deps from the locally packaged versions, so this
+        # passes before the bumped versions are on crates.io. Only runs when a
+        # Cargo.toml changed, since that's the only thing that affects it.
+        if: steps.changes.outputs.manifests == 'true'
+        run: cargo publish --workspace --dry-run --all-features
