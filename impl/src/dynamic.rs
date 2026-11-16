@@ -59,10 +59,13 @@ impl MakeEmbed for Config {
             quote! {}
         };
 
+        let mtime = self.should_mtime();
+
         quote! {
             let mut config = rust_embed_for_web::utils::Config::new();
             #includes_embed
             #excludes_embed
+            config.set_mtime(#mtime);
             config
         }
     }
@@ -84,7 +87,12 @@ pub(crate) fn generate_dynamic_impl(
           if config.should_include(path) {
             let folder_path: std::path::PathBuf = std::convert::From::from(#folder_path);
             let combined_path = folder_path.join(path);
-            rust_embed_for_web::DynamicFile::read_from_fs(combined_path).ok()
+            let file = rust_embed_for_web::DynamicFile::read_from_fs(combined_path).ok()?;
+            if config.should_mtime() {
+              Some(file)
+            } else {
+              Some(file.without_mtime())
+            }
           } else {
             None
           }

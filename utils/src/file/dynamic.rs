@@ -91,6 +91,13 @@ fn modified_unix_timestamp(metadata: &std::fs::Metadata) -> Option<i64> {
 }
 
 impl DynamicFile {
+    /// Drop the last modified timestamp, so `last_modified` and
+    /// `last_modified_timestamp` return `None`.
+    pub fn without_mtime(mut self) -> Self {
+        self.last_modified_timestamp = None;
+        self
+    }
+
     pub fn read_from_fs<P: AsRef<Path>>(path: P) -> std::io::Result<Self> {
         let file = std::fs::OpenOptions::new().read(true).open(&path)?;
 

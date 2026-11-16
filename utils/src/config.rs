@@ -11,6 +11,7 @@ pub struct Config {
     br: bool,
     zstd: bool,
     allow_missing: bool,
+    mtime: bool,
 }
 
 impl Default for Config {
@@ -27,6 +28,7 @@ impl Default for Config {
             #[cfg(not(feature = "compression-zstd"))]
             zstd: false,
             allow_missing: false,
+            mtime: true,
         }
     }
 }
@@ -74,6 +76,14 @@ impl Config {
     /// instead of a build error.
     pub fn set_allow_missing(&mut self, status: bool) {
         self.allow_missing = status;
+    }
+
+    /// Include the file's last modified timestamp in the embed.
+    ///
+    /// Pass `false` to drop the timestamps, which makes the embedded output
+    /// independent of the mtimes of the files on disk.
+    pub fn set_mtime(&mut self, status: bool) {
+        self.mtime = status;
     }
 
     #[cfg(feature = "include-exclude")]
@@ -138,5 +148,10 @@ impl Config {
     /// Whether a missing embedded folder is allowed.
     pub fn allow_missing(&self) -> bool {
         self.allow_missing
+    }
+
+    /// Whether the embed includes the file's last modified timestamp.
+    pub fn should_mtime(&self) -> bool {
+        self.mtime
     }
 }

@@ -159,6 +159,25 @@ time. Add `#[allow_missing = true]` to instead generate an empty asset set, so
 `get` returns `None` for every path. This is useful when the folder is produced
 by another build step that may not have run yet when testing.
 
+#### `mtime`
+
+By default, the last modified timestamp of each file is embedded, so
+`last_modified` and `last_modified_timestamp` work without touching the file
+system at runtime. Since the timestamp comes from the files on disk, it makes
+builds unreproducible: a fresh clone or a checkout on a machine that stamps
+different mtimes produces a different binary.
+
+Add `#[mtime = false]` to drop the timestamps from the embed. `last_modified`
+and `last_modified_timestamp` then return `None`, and the build output only
+depends on the file contents.
+
+```rust
+#[derive(RustEmbed)]
+#[folder = "assets/"]
+#[mtime = false]
+struct Assets;
+```
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
