@@ -108,3 +108,28 @@ pub(crate) fn generate_dynamic_impl(
       }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn generated_code(config: &Config) -> String {
+        let ident: syn::Ident = syn::parse_str("Assets").unwrap();
+        generate_dynamic_impl(&ident, config, "assets", "").to_string()
+    }
+
+    #[test]
+    fn generated_code_drops_mtime_when_disabled() {
+        let mut config = Config::new();
+        config.set_mtime(false);
+        let code = generated_code(&config);
+        assert!(code.contains("set_mtime (false)"), "{}", code);
+        assert!(code.contains("without_mtime ()"), "{}", code);
+    }
+
+    #[test]
+    fn generated_code_keeps_mtime_by_default() {
+        let code = generated_code(&Config::new());
+        assert!(code.contains("set_mtime (true)"), "{}", code);
+    }
+}
