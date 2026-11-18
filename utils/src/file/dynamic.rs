@@ -91,6 +91,11 @@ fn modified_unix_timestamp(metadata: &std::fs::Metadata) -> Option<i64> {
 }
 
 impl DynamicFile {
+    pub fn without_mtime(mut self) -> Self {
+        self.last_modified_timestamp = None;
+        self
+    }
+
     pub fn read_from_fs<P: AsRef<Path>>(path: P) -> std::io::Result<Self> {
         let file = std::fs::OpenOptions::new().read(true).open(&path)?;
 
@@ -134,5 +139,29 @@ impl Debug for DynamicFile {
 impl PartialEq for DynamicFile {
     fn eq(&self, other: &Self) -> bool {
         self.hash.eq(&other.hash)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn read_cargo_toml() -> DynamicFile {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        DynamicFile::read_from_fs(path).unwrap()
+    }
+
+    #[test]
+    fn mtime_is_present_when_read_from_fs() {
+        let file = read_cargo_toml();
+        assert!(file.last_modified_timestamp().is_some());
+        assert!(file.last_modified().is_some());
+    }
+
+    #[test]
+    fn without_mtime_drops_the_timestamp() {
+        let file = read_cargo_toml().without_mtime();
+        assert!(file.last_modified_timestamp().is_none());
+        assert!(file.last_modified().is_none());
     }
 }

@@ -78,8 +78,14 @@ impl<'t> MakeEmbed for EmbedDynamicFile<'t> {
         let data = data.make_embed();
         let hash = file.hash().make_embed();
         let etag = file.etag().make_embed();
-        let last_modified = file.last_modified().make_embed();
-        let last_modified_timestamp = file.last_modified_timestamp().make_embed();
+        let (last_modified, last_modified_timestamp) = if self.config.should_mtime() {
+            (
+                file.last_modified().make_embed(),
+                file.last_modified_timestamp().make_embed(),
+            )
+        } else {
+            (None::<String>.make_embed(), None::<i64>.make_embed())
+        };
         let mime_type = file.mime_type().make_embed();
         // Make sure that the order of these parameters is correct!
         quote! {

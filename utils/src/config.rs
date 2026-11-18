@@ -11,6 +11,7 @@ pub struct Config {
     br: bool,
     zstd: bool,
     allow_missing: bool,
+    mtime: bool,
 }
 
 impl Default for Config {
@@ -27,6 +28,7 @@ impl Default for Config {
             #[cfg(not(feature = "compression-zstd"))]
             zstd: false,
             allow_missing: false,
+            mtime: true,
         }
     }
 }
@@ -74,6 +76,10 @@ impl Config {
     /// instead of a build error.
     pub fn set_allow_missing(&mut self, status: bool) {
         self.allow_missing = status;
+    }
+
+    pub fn set_mtime(&mut self, status: bool) {
+        self.mtime = status;
     }
 
     #[cfg(feature = "include-exclude")]
@@ -138,5 +144,9 @@ impl Config {
     /// Whether a missing embedded folder is allowed.
     pub fn allow_missing(&self) -> bool {
         self.allow_missing
+    }
+
+    pub fn should_mtime(&self) -> bool {
+        self.mtime
     }
 }

@@ -4,16 +4,18 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Add clippy
         run: rustup component add clippy
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+      # `actions-rs/clippy-check` is archived (last release 2020) and fails on
+      # Node 24 runners with "Not Found" after clippy finishes, so run clippy
+      # directly. This also lints the whole workspace instead of just the root
+      # package.
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
   format_check:
     name: format check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - run: cargo fmt --all --check

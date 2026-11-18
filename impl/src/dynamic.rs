@@ -59,10 +59,13 @@ impl MakeEmbed for Config {
             quote! {}
         };
 
+        let mtime = self.should_mtime();
+
         quote! {
             let mut config = rust_embed_for_web::utils::Config::new();
             #includes_embed
             #excludes_embed
+            config.set_mtime(#mtime);
             config
         }
     }
@@ -84,7 +87,12 @@ pub(crate) fn generate_dynamic_impl(
           if config.should_include(path) {
             let folder_path: std::path::PathBuf = std::convert::From::from(#folder_path);
             let combined_path = folder_path.join(path);
-            rust_embed_for_web::DynamicFile::read_from_fs(combined_path).ok()
+            let file = rust_embed_for_web::DynamicFile::read_from_fs(combined_path).ok()?;
+            if config.should_mtime() {
+              Some(file)
+            } else {
+              Some(file.without_mtime())
+            }
           } else {
             None
           }
@@ -98,5 +106,30 @@ pub(crate) fn generate_dynamic_impl(
           #ident::get(file_path)
         }
       }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn generated_code(config: &Config) -> String {
+        let ident: syn::Ident = syn::parse_str("Assets").unwrap();
+        generate_dynamic_impl(&ident, config, "assets", "").to_string()
+    }
+
+    #[test]
+    fn generated_code_drops_mtime_when_disabled() {
+        let mut config = Config::new();
+        config.set_mtime(false);
+        let code = generated_code(&config);
+        assert!(code.contains("set_mtime (false)"), "{}", code);
+        assert!(code.contains("without_mtime ()"), "{}", code);
+    }
+
+    #[test]
+    fn generated_code_keeps_mtime_by_default() {
+        let code = generated_code(&Config::new());
+        assert!(code.contains("set_mtime (true)"), "{}", code);
     }
 }

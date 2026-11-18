@@ -159,6 +159,13 @@ time. Add `#[allow_missing = true]` to instead generate an empty asset set, so
 `get` returns `None` for every path. This is useful when the folder is produced
 by another build step that may not have run yet when testing.
 
+#### `mtime`
+
+By default the last modified timestamp of each file is embedded. This can make
+builds non-reproducible if you take a fresh checkout each time before building.
+Add `#[mtime = false]` to omit the timestamps from the embed. This will cause
+`last_modified` and `last_modified_timestamp` to always return `None`.
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
