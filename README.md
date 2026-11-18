@@ -161,22 +161,10 @@ by another build step that may not have run yet when testing.
 
 #### `mtime`
 
-By default, the last modified timestamp of each file is embedded, so
-`last_modified` and `last_modified_timestamp` work without touching the file
-system at runtime. Since the timestamp comes from the files on disk, it makes
-builds unreproducible: a fresh clone or a checkout on a machine that stamps
-different mtimes produces a different binary.
-
-Add `#[mtime = false]` to drop the timestamps from the embed. `last_modified`
-and `last_modified_timestamp` then return `None`, and the build output only
-depends on the file contents.
-
-```rust
-#[derive(RustEmbed)]
-#[folder = "assets/"]
-#[mtime = false]
-struct Assets;
-```
+By default the last modified timestamp of each file is embedded. This can make
+builds non-reproducible if you take a fresh checkout each time before building.
+Add `#[mtime = false]` to omit the timestamps from the embed. This will cause
+`last_modified` and `last_modified_timestamp` to always return `None`.
 
 ## Contributors
 

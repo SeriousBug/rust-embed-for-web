@@ -91,8 +91,6 @@ fn modified_unix_timestamp(metadata: &std::fs::Metadata) -> Option<i64> {
 }
 
 impl DynamicFile {
-    /// Drop the last modified timestamp, so `last_modified` and
-    /// `last_modified_timestamp` return `None`.
     pub fn without_mtime(mut self) -> Self {
         self.last_modified_timestamp = None;
         self
